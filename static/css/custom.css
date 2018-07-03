@@ -131,6 +131,23 @@ h2:target {
   margin-top: -88px; 
   padding-top: 88px;
 }
+@media only screen and (min-width: 900px) {
+  .frontpage-image {
+    width: 33%;
+  }
+}
+@media only screen and (max-width: 900px) and (min-width: 450px) {
+  .frontpage-image {
+    width: 100%;
+    max-width: 225px;
+  }
+}
+@media only screen and (max-width: 450px) {
+  .frontpage-image {
+    width: 100%;
+  }
+}
+
 /* ---- COLORS ---- */
 a {
   color: #161688; 
