@@ -1,0 +1,31 @@
+baseURL = "/"
+Title = "Gerke Lab"
+languageCode = "en-us"
+theme = "kube"
+Paginate = 4
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+
+[Params]
+  RSSLink = "/index.xml"
+  author = "Gerke Lab" # add your company name
+  github = "gerkelab" # add your github profile name
+  twitter = "travisgerke" # add your twitter profile
+  email = "gerkelab@gerkelab.com"
+  Description = "Doing research and fighting the good fight against cancer."
+
+[[menu.main]]
+    name = "Projects"
+    weight = 200
+    url = "/project/"
+[[menu.main]]
+    name = "Blog"
+    weight = 100
+    url = "/blog/"
+[[menu.main]]
+    name = "About"
+    weight = 300
+    url = "/about/"
+[[menu.main]]
+    name = "Publications"
+    weight = 250
+    url = "/publication/"

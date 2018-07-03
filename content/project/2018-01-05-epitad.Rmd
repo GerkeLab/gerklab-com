@@ -1,0 +1,26 @@
+---
+title: epiTAD
+author:
+  - Jordan Creed
+  - Travis Gerke
+date: '2018-01-05'
+slug: epitad
+categories:
+  - Shiny
+tags: []
+description: A shiny app for visualizing Hi-C data alongside annotation relevant to genetic epidemiology studies
+weight: 30
+toc: no
+callout: |
+  A shiny app for visualizing Hi-C data alongside annotation relevant to genetic epidemiology studies
+github_url: 'https://github.com/tgerke/epiTAD'
+app_url: 'https://gerkelab.shinyapps.io/epiTAD'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- Project Description or README Goes Here -->
+
+![](https://raw.githubusercontent.com/tgerke/epiTAD/master/figures/figure1topo.png)

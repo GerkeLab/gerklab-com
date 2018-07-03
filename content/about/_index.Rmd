@@ -1,0 +1,104 @@
+---
+title: "About"
+description: "Meet Team Gerke"
+draft: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(purrr)
+library(glue)
+```
+
+```{r}
+links <- list(
+  "Travis Gerke" = list(
+    email = "Travis.Gerke@moffitt.org",
+    twitter = "travisgerke",
+    github = "tgerke",
+    link = "travisgerke.com"
+  ),
+  "Jordan Creed" = list(
+    email = "Jordan.Creed@moffitt.org",
+    github = "jhcreed"
+  ),
+  "Garrick Aden-Buie" = list(
+    email = "Garrick.Aden-Buie@moffitt.org",
+    twitter = "grrrck",
+    github = "gadenbuie",
+    link = "garrickadenbuie.com"
+  )
+)
+
+link_images <- list(
+  email = "far fa-envelope-open",
+  twitter = "fab fa-twitter",
+  github = "fab fa-github",
+  link = "fas fa-link"
+)
+
+link_prefix <- list(
+  email = "mailto:",
+  twitter = "https://twitter.com/",
+  github = "https://github.com/",
+  link = "https://"
+)
+
+make_table <- function(name) {
+  this_links <- links[[name]]
+  if (!length(this_links)) return("")
+  rows <- purrr::imap(this_links, ~ glue::glue(
+    '<tr>\n<td><i class="{link_images[[.y]]}"></i></td>\n',
+    '<td><a href="{link_prefix[[.y]]}{.x}">{.x}</a></td>\n</tr>')
+  )
+  rows <- paste(rows, collapse = "\n")
+  paste(
+    '<table style="width: 90%">',
+    rows,
+    '</table>',
+    sep = "\n"
+  )
+}
+```
+
+
+
+<div class="row gutter about-card">
+  <div class="col col-4">
+  <h2>Travis Gerke</h2>
+  <img class="headshot w90" src="/img/headshot-gerke.jpg">
+  `r make_table("Travis Gerke")`
+</div>
+<div class="col col-8">
+  <p>My active line of research lies in integrative molecular cancer epidemiology, and is driven by concurrent interests in biostatistical methods development and computational biology. Several of my recent publications investigate tumor-based biomarkers (DNA/mRNA/protein) that can distinguish aggressive from non-aggressive prostate cancers in large prospective cohorts. My methodological interests in this area concern ways in which high-dimensional data analysis techniques can be modified to discover markers that are highly specific for indolent cancer types. With regard to computational biology and statistics, I also collaborate on efforts to streamline processing, analysis, and epidemiologic translation of large-scale genomic databases such as The Cancer Genome Atlas (TCGA) and the Gene Expression Omnibus. Finally, an emerging research interest of mine applies contemporary methods in causal inference to existing clinical trial data in order to discover optimal treatment sequences for metastatic castration-resistant prostate cancer.<p>
+  <p>For a full list of publications and other academic activities, please see my [complete CV](http://travisgerke.com/cv/).</p>
+  </div>
+</div>
+
+<div class="row gutter about-card">
+  <div class="col col-4">
+  <h2>Jordan Creed</h2>
+  `r make_table("Jordan Creed")`
+</div>
+<div class="col col-8">
+Shoulder fugiat hamburger veniam kevin ham hock frankfurter ex bacon qui quis prosciutto duis ham leberkas. Sint et occaecat veniam jowl ad alcatra mollit ground round. Kielbasa enim veniam labore, tail nostrud ut est. Pastrami dolor salami jowl, lorem ea consectetur id minim aliqua. Ex tongue magna deserunt flank turducken.
+
+Alcatra brisket mollit pariatur pork loin ham veniam in magna cow ipsum pastrami. Pariatur cupim sint ad adipisicing ut, tempor lorem short ribs. Minim ground round in, cillum velit ad reprehenderit leberkas dolore chicken enim sed laborum shoulder. Corned beef in et, chuck ad sausage reprehenderit cillum tongue capicola ut. Sirloin qui consectetur incididunt landjaeger. Cillum bacon pig ribeye frankfurter. Venison bacon ribeye duis enim flank.
+  </div>
+</div>
+
+<div class="row gutter about-card">
+  <div class="col col-4">
+  <h2>Garrick <span style="white-space: nowrap">Aden-Buie</span></h2>
+  <img class="headshot w90" src="/img/headshot-garrick.jpg">
+  `r make_table("Garrick Aden-Buie")`
+</div>
+<div class="col col-8">
+Spicy jalapeno bacon ipsum dolor amet short loin sint pig ad laborum, landjaeger mollit cillum. Anim biltong minim dolore cow. Adipisicing tenderloin anim, kielbasa ex occaecat nostrud irure veniam. Anim in minim sint. Burgdoggen duis lorem corned beef andouille sed cupidatat mollit pariatur.
+
+Incididunt pancetta duis, salami t-bone sint lorem pork belly tenderloin leberkas pig doner. Eu turkey short loin swine flank ut pork loin enim beef jowl kevin cupim elit shank. In qui laborum reprehenderit, et jerky jowl eu flank leberkas cupim ea. Ut shankle pastrami fatback pork elit id mollit hamburger short loin sint picanha beef ribs. Duis mollit doner in occaecat brisket. Tenderloin rump venison consequat pork loin ut boudin voluptate. Picanha enim short ribs pancetta ipsum quis chicken pariatur meatloaf.
+  </div>
+</div>
+

@@ -1,0 +1,42 @@
+<!--
+<nav class="pagination pager align-center">
+            <hr>
+    <ul>
+           {{if .Paginator.HasPrev }}
+        <li class="prev"><a href="{{ .Paginator.Prev.URL }}">Previous</a></li>
+        {{ end }}
+        <li>
+
+        <a href="" class="button small outline">Page {{ .Paginator.PageNumber }} of {{ .Paginator.TotalPages }}</a>
+        </li>
+            {{ if .Paginator.HasNext }}</a>
+        <li class="next"><a href="{{ .Paginator.Next.URL }}">Next</a></li>
+           {{ end }}
+    </ul>
+</nav>
+-->
+
+<nav class="pagination align-center">
+    {{ $pag := $.Paginator }}
+    {{ if gt $pag.TotalPages 1 }}
+    <ul>
+        {{ if $pag.HasPrev }}
+        <li class="prev"><a href="{{ $pag.Prev.URL }}">&larr;</a></li>
+        {{ end }}
+        <li>
+            <ul>
+                {{ range $pag.Pagers }}
+                  {{ if eq . $pag }}
+                    <li class="active"><a href="#">{{ .PageNumber }}</a></li>
+                  {{ else }}
+                    <li><a href="{{ .URL }}">{{ .PageNumber }}</a>
+                  {{ end }}
+                {{ end }}
+            </ul>
+        </li>
+        {{ if $pag.HasNext }}
+        <li class="next"><a href="{{ $pag.Next.URL }}">&rarr;</a></li>
+        {{ end }}
+    </ul>
+    {{ end }}
+</nav>

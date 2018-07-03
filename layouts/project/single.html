@@ -1,0 +1,35 @@
+{{ define "title"}} {{ .Title}} {{end}}
+{{ define "header"}} {{ partial "header" .}} {{end}}
+{{ define "main"}}
+  <div id="main">
+    <div id="hero">
+      <h1> {{ .Title}} </h1>
+      {{ if .Params.callout }}
+      <p class="hero-lead">
+           {{ .Params.callout | markdownify }}
+      </p>
+      {{ end }}
+      {{ if  or (isset .Params "app_url") (isset .Params "github_url") }}
+      <p>
+        {{ if .Params.app_url }}
+        <a href="{{.Params.app_url}}"><button class="button primary"><i class="fas fa-rocket"></i>  Run Demo App</button></a>
+        {{ end }}{{ if .Params.github_url }}
+        <a href="{{.Params.github_url}}"><button class="button secondary"><i class="fab fa-github"></i>  View Source on GitHub</button></a>
+        {{ end }}
+      </p>
+      {{ end }}
+
+    </div> 
+    <div id="kube-component" class="content">
+    {{ partial "toc" . }}
+
+    {{ .Content}}
+<!-- Inject script tag in this template  -->
+    {{if .Params.script}}
+     {{ $script := (delimit (slice "scripts" .Params.script) "/")}}
+    {{ partial (string $script) .}}
+    {{end }}
+    </div>
+    </div>
+{{ end }}
+{{ define "footer"}} {{ partial "footer.html" .}} {{ end }}

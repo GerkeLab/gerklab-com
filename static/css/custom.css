@@ -1,0 +1,171 @@
+#top {
+  background: #FFFFFFF0;
+}
+
+#kube-about {
+  max-width: 800px;
+  margin: auto;
+}
+#kube-about p {
+  text-align: justify;
+}
+#kube-about h2 {
+  text-align: left;
+}
+.about-card {
+  margin-bottom: 3em;
+  border: solid #F0F0F0 2px;
+  padding: 2em;
+  border-radius: 10px;
+}
+.caption {
+  font-style: italic;
+  text-align: right;
+}
+sup {
+  font-size: small;
+}
+#top {
+  margin-bottom: 0px;
+}
+#top a {
+  color: #989898;
+  text-decoration: none;
+  font-weight: bold;
+}
+#post p {
+  text-align: justify;
+}
+#posts {
+  text-align: left;
+}
+#posts h2 a {
+  color: black;
+}
+#top #top-nav-extra span, #top #top-nav-extra a {
+  color: rgba(0, 0, 0, 0.7);
+  display: inline-block;
+  border: none;
+  text-decoration: none;
+  line-height: 28px;
+  border-radius: 28px;
+  padding: 0 6px;
+  font-size: 1.3em;
+}
+#components h4 {
+  font-size: 1.4em;
+}
+#components p {
+  font-size: 0.95em;
+}
+.headshot {
+  border: 2px solid #989898;
+  border-radius: 51%;
+}
+#components .item {
+  background: #f5f5f9;
+}
+.frontpage-link-container {
+  height: 100%;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid white;
+}
+.frontpage-link-container:hover {
+  border: 1px solid #989898;
+  border-radius: 5px;
+}
+.frontpage-link {
+  display: block;
+}
+.frontpage-link p {
+  color: rgba(0, 0, 0, 0.5);
+}
+.frontpage-link-container:hover h3 {
+  color: #D3751C;
+}
+#hero p {
+  max-width: 800px;
+}
+#hero.publications h3 {
+  text-emphasis: italic;
+  color: #989898;
+}
+.publications-table {
+  table-layout: fixed;
+  width: 100%;
+}
+.publications-table td:first-child {  
+  font-weight: bold;
+  width: 150px;
+}
+.publications-table-links {
+  list-style-type: none;
+  margin: 0;
+}
+.publications-list {
+  list-style-type: none;
+  margin-left: 0;
+}
+.publications-list li {
+  margin-bottom: 25px;
+  text-align: justify;
+}
+.publications-list .description {
+  color: #989898;
+}
+.publications-authors {
+  padding: 0 5%;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.pull-right {
+  float: right;
+}
+h2:target { 
+  display: block;
+  margin-top: -88px; 
+  padding-top: 88px;
+}
+/* ---- COLORS ---- */
+a {
+  color: #161688; 
+  text-decoration: none;
+}
+
+a:hover {
+  color: #7F8BBF; }
+  
+.button.primary {
+  background-color: #D3751C;
+}
+.button.primary:hover {
+  background-color: #D3751Caa;
+}
+.button.primary.outline {
+  background: 0 0;
+  color: #D3751C;
+  border-color: #D3751C;
+}
+.button.primary.outline:hover {
+  background: 0 0;
+  color: #D3751Caa;
+  border-color: #D3751Caa;
+}
+.button.info {
+  background-color: #161688;
+}
+.button.info:hover {
+  background-color: #7F8BBF;
+}
+  
+#components h4 a {
+  color: #D3751C; }
+
+#components h4 a:hover {
+  color: #161688; }
+
+#hero p:before {
+  background: #D3751C;
+}

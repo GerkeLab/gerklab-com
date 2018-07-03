@@ -1,0 +1,74 @@
+{{ define "title"}} {{ .Title}} {{end}} 
+{{ define "header"}} {{ partial "header" .}} {{end}} 
+{{ define "main"}}
+<div id="main">
+  <div id="hero" class="publications">
+    <h2> {{ .Title}} </h2>
+    <h3 class="publications-authors">
+      <span class="nowrap">{{ delimit .Params.author "</span>, <span class='nowrap'>"}}</span>
+    </h3>
+
+    {{ if .Params.description }}
+    <p class="hero-lead">
+      {{ .Params.description | markdownify }}
+    </p>
+    {{ end }} {{ if isset .Params "header_buttons" }}
+    <p>
+      {{ range .Params.header_buttons }}
+      <a href="{{.url}}">
+        <button class="button {{ .class }}">
+          {{ if .icon }}<i class="{{ .icon }}"></i> {{ end }}{{ .text }}</button>
+      </a>
+      {{ end }}
+    </p>
+    {{ end }}
+  </div>
+  <div id="kube-component" class="content">
+    <h2>Abstract</h2>
+    <p>{{ .Params.abstract | markdownify }}</p>
+    <div class="row">
+      <div class="col col-8 offset-2">
+        <table class="publications-table">
+          <tr>
+            <td>Published In</td>
+            <td>{{ .Params.published_in }}</td>
+          </tr>
+          <tr>
+            <td>Date</td>
+            <td>{{ dateFormat "Jan 2, 2006" .Params.date }}</td>
+          </tr>
+          {{ if isset .Params "doi" }}
+          <tr>
+            <td>DOI</td>
+            <td><a href="https://doi.org/{{ .Params.doi }}">{{ .Params.doi }}</a></td>
+          </tr>
+          {{ end }}
+          {{ if isset .Params "links" }}
+          <tr>
+            <td>Links</td>
+            <td>
+              <ul class="publications-table-links">
+                {{ range .Params.links }}
+                <li>
+                  <a href="{{ .url }}">{{ .name }}</a>
+                </li>
+                {{ end }}
+              </ul>
+            </td>
+          </tr>
+          {{ end }}
+        </table>
+      </div>
+    </div>
+    {{ .Content}}
+    <h2>Citation</h2>
+    <blockquote>{{ .Params.citation }}</blockquote>
+    <!-- Inject script tag in this template  -->
+    {{if .Params.script}} 
+    {{ $script := (delimit (slice "scripts" .Params.script) "/")}}
+    {{ partial (string $script) .}} 
+    {{ end }}
+  </div>
+</div>
+{{ end }}
+{{ define "footer"}} {{ partial "footer.html" .}} {{ end }}

@@ -1,0 +1,88 @@
+---
+title: "shinyDAG"
+description: "A Shiny app to create, visualize, and analyze causal diagrams (DAGs)"
+author: "Jordan Creed"
+weight: 10
+draft: false
+toc: false
+callout: |
+  **shinyDAG** is a web application that uses R and LaTeX to create
+  publication-quality images of directed acyclic graphs (DAGs). Additionally,
+  the application leverages complementary R packages to evaluate correlational
+  structures and identify appropriate adjustment sets for estimating causal
+  effects.
+  
+github_url: "https://github.com/GerkeLab/ShinyDAG"
+app_url: "https://gerkelab.shinyapps.io/shinyDAG/"
+---
+
+
+
+<div id="key-operations" class="section level2">
+<h2>Key operations</h2>
+<div id="adding-nodes-and-edges" class="section level3">
+<h3>Adding nodes and edges</h3>
+<p><img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/AddNodeEdge.gif" /></p>
+</div>
+<div id="editing-dag-aesthetics" class="section level3">
+<h3>Editing DAG aesthetics</h3>
+<p><img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/editEdge.gif" /></p>
+</div>
+</div>
+<div id="examplary-usage" class="section level2">
+<h2>Examplary usage</h2>
+<p>The following DAG was reproduced from “A structural approach to selection bias”<sup>5</sup> (Figure 6A) using the shinyDAG web app.</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/example1.png" title="Hernan Example" alt="Hernan Example" />
+<p class="caption">Hernan Example</p>
+</div>
+<p>For comparison, the DAG from the original article is shown below.</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/example1_hernan.png" title="Hernan Original" alt="Hernan Original" />
+<p class="caption">Hernan Original</p>
+</div>
+<p>The DAG represents a study on the effects of antiretroviral therapy (E) on AIDS risk (D), where immunosuppression (U) is unmeasured. L represents presence of symptoms (such as fever, weight loss, and diarrhea) and C represents censoring. A spurious path exists between E and D due to selection bias. We can see this in shinyDAG by ensuring that we’ve selected E as the exposure, D as the outcome, adjusted for C, and then toggling the “Examine DAG elements” button in the bottom left corner. The spurious open path is displayed as D &lt;- U -&gt; L -&gt; C &lt;- E.</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/paths.png" title="shinyDAG path output" alt="shinyDAG path output" />
+<p class="caption">shinyDAG path output</p>
+</div>
+<p>One possible resolution for this bias is to adjust for L. After toggling L in the “Select nodes to adjust” section, we see that all spurious E to D paths are now closed.</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/GerkeLab/ShinyDAG/master/Figures/paths2.png" title="shinyDAG final path output" alt="shinyDAG final path output" />
+<p class="caption">shinyDAG final path output</p>
+</div>
+</div>
+<div id="other-features" class="section level2">
+<h2>Other features</h2>
+<p>In addition PDF and PNG exports, users can download R objects in <code>ggdag</code> or <code>daggity</code> formats, as well as the source LaTeX code. The “Edit LaTeX” pane permits in-app modification of the LaTeX code with a preview window; however, users should be aware that the information in “Examine DAG elements” is not responsive to changes in the Edit LaTeX pane.</p>
+<p>shinyDAG should work in most modern web browsers, however, we have observed optimal performance in Chrome. The most notable difference across OS/browsers is likely to be in display handling for the PDF preview in the main panel: various user or browser-specific settings will determine the default zoom level.</p>
+</div>
+<div id="citing-shinydag" class="section level2">
+<h2>Citing shinyDAG</h2>
+<p>shinyDAG was developed by Jordan Creed and Travis Gerke.</p>
+<dl>
+<dt>Concept DOI</dt>
+<dd>10.5281/zenodo.1288712
+</dd>
+<dt>v0.1.0 DOI</dt>
+<dd>10.5281/zenodo.1296477
+</dd>
+<dt>v0.0.0 DOI</dt>
+<dd>10.5281/zenodo.1288713
+</dd>
+</dl>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li>Richard Iannone (NA). DiagrammeR: Graph/Network Visualization. R package version 1.0.0.
+<a href="https://github.com/rich-iannone/DiagrammeR" class="uri">https://github.com/rich-iannone/DiagrammeR</a>.</li>
+<li>Johannes Textor and Benito van der Zander (2016). dagitty: Graphical Analysis of Structural Causal
+Models. R package version 0.2-2. <a href="https://CRAN.R-project.org/package=dagitty" class="uri">https://CRAN.R-project.org/package=dagitty</a>.</li>
+<li>Malcolm Barrett (2018). ggdag: Analyze and Create Elegant Directed Acyclic Graphs. R package
+version 0.1.0. <a href="https://CRAN.R-project.org/package=ggdag" class="uri">https://CRAN.R-project.org/package=ggdag</a>.</li>
+<li>Csardi G, Nepusz T: The igraph software package for complex network research, InterJournal,
+Complex Systems 1695. 2006. <a href="http://igraph.org" class="uri">http://igraph.org</a>.</li>
+<li>Hernan MA, Hernandez-Díaz S, Robins JM. A structural approach to selection bias. Epidemiology 2004;15:615-625.</li>
+</ol>
+</div>
