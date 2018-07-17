@@ -1,0 +1,148 @@
+---
+title: Conditional recoding of values in a data frame with recode_if()
+author: Garrick Aden-Buie
+date: '2018-07-17'
+slug: recode-if
+categories: []
+tags:
+  - R
+  - Script
+  - Tips
+hero_bg: "/img/hero/victor-garcia-645096-unsplash.jpg"
+---
+
+```{r settings, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# knit_print.tbl_df = function(x, ...) {
+#     res = paste(c("", "", knitr::kable(x)), collapse = "\n")
+#     knitr::asis_output(res)
+# }
+
+library(dplyr)
+example_data <- tibble::tribble(
+   ~id,                     ~name,                                ~job, ~code,
+  8350,           "Nolia Osinski", "Research officer, political party", "XDR",
+  1045,         "Dr. Gorge Green",              "Sports administrator", "AWG",
+  3839,         "Bernie O'Reilly",                       "Ship broker", "AWG", #CLP
+  5643,    "Brionna Kuphal-Fadel",              "Sports administrator", "_MXN",
+  1891,    "Patsy Lind-Halvorson",                "Purchasing manager", "SEK",
+  1506,              "Samual Fay",                        "Ergonomist", "999", #SYP
+  5757,       "Gabriela Kassulke",                "Engineer, drilling", "HTG",
+  6702,            "Dr. Ty Lynch",           "Physiological scientist", "_MKD",
+  2702, "Abigale Senger-Schimmel",                  "Engineer, energy", "BTN",
+  3622,   "Regis Stracke-Bartell",                "Surveyor, minerals", "THB"
+)
+example_data_orig <- example_data
+```
+
+Suppose your data set has a column that contains errors in a small number of values.
+Additionally, you know that the location of these errors can be determined based on another column, such as an ID.
+Finally, you'd like to make it extremely clear in your code which values were changed and to what so that there is no confusion among your collaborators (or your future self).
+
+For example, consider the following completely made up data containing a few issues in the `code` column.
+
+```{r}
+example_data
+```
+
+There are three issues in the `code` column that need to be rectified:
+
+1. One value is `999` when it should be `SYP`.
+
+1. The `AWG` value for Bernie O'Reilly is repeated and should be `CLP`.
+
+1. Two of the values for recently added people start with a `_` that should be removed. Here, recently added means `id >= 5000`.
+
+Note that in this context, applying a function to transform the `code` column won't be as clear as directly declaring that you are recoding `"AWG"` as `"CLP"` for person 3989.
+
+To do this, we'll build on the dplyr function `recode()`.
+
+## Standard `recode()`
+
+The first issue can be fixed with a standard use of `recode()` from dplyr.
+
+```{r}
+example_data <- example_data %>% 
+  mutate(code = recode(code, "999" = "SYP"))
+example_data
+```
+
+`recode()` is a vectorized version of `switch()`.
+In the above example, `recode()` works by taking any value of `code` equal to `999` and _recoding it_ as `"SYP"`.
+
+## `recode_if()`
+
+For the second two issues, we need to condition the value updating on a second column.
+By this, we mean that we can't use the value of `code` directly to choose which value to update -- for example, we need to change the value of `code` when it equals `AWG`, but only for `id == 3839`.
+
+To do this we introduce a simple function called `recode_if()` that provides a wrapper around `if_else()` and `recode()`.
+
+```{r}
+recode_if <- function(x, condition, ...) {
+  if_else(condition, recode(x, ...), x)
+}
+```
+
+Then we apply this function to change the value of `code` to `"CLP"` for the person with `id == 3839`.
+
+```{r}
+example_data <- example_data %>%
+  mutate(code = recode_if(code, id == 3839, "AWG" = "CLP"))
+
+example_data
+```
+
+And finally, we strip the leading `"_"` character for people with `id >= 5000` using `recode_if()`.
+
+```{r}
+example_data <- example_data %>%
+  mutate(code = recode_if(code, id >= 5000, "_MXN" = "MXN", "_MKD" = "MKD"))
+
+example_data
+```
+
+## Comparison
+
+The example here was contrived, but it's not uncommon to need to change the value in a single row/column pair in a data frame during cleaning.
+`recode()` and `recode_if()` are two methods that are useful, but there are others.
+In our opinion, the explict mapping of old values to new values in `recode()` and `recode_if()` makes the code clearer and easier to understand from a distance.
+
+Another option is to use `if_else()` directly
+
+```{r}
+example_data_orig %>% 
+  mutate(
+    code = if_else(code == "999", "SYP", code),
+    code = if_else(id == 3839, "CLP", code),
+    code = if_else(id >= 5000,
+                   if_else(code %in% c("_MXN", "_MKD"), 
+                           sub("^_", "", code),
+                           code),
+                   code)
+  )
+```
+
+but the nested `if_else()` statements gets unwieldy when there are multiple values.
+
+A third option is to use `case_when()`, as in
+
+```{r}
+example_data_orig %>% 
+  mutate(
+    code = case_when(
+      code == "999" ~ "SYP",
+      id == 3839 ~ "CLP",
+      id >= 5000 & code == "_MXN" ~ "MXN",
+      id >= 5000 & code == "_MKD" ~ "MKD",
+      TRUE ~ code
+    )
+  )
+```
+
+but the repeated `id >= 5000` filter makes the recoding less clear.
+(Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)
+
+---
+
+Cover photo by: Photo by [Victor Garcia](https://unsplash.com/photos/0yL6nXhn0pI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/search/photos/grid?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
