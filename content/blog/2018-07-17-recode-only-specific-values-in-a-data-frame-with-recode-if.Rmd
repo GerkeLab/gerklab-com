@@ -48,15 +48,15 @@ example_data
 
 There are three issues in the `code` column that need to be rectified:
 
-1. One value is `999` when it should be `SYP`.
+1. One value is `999` when it should be `SYP` (row 6).
 
-1. The `AWG` value for Bernie O'Reilly is repeated and should be `CLP`.
+1. The `AWG` value for Bernie O'Reilly (row 3) was miscoded at the time of data entry and should be `CLP`.
 
-1. Two of the values for recently added people start with a `_` that should be removed. Here, recently added means `id >= 5000`.
+1. Two of the values for recently added people start with a `_` that should be removed (rows 4 and 8). Here, recently added means `id >= 5000`.
 
-Note that in this context, applying a function to transform the `code` column won't be as clear as directly declaring that you are recoding `"AWG"` as `"CLP"` for person 3989.
+Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding `"AWG"` as `"CLP"` for person 3989.
 
-To do this, we'll build on the dplyr function `recode()`.
+To do this, we'll build on the dplyr function `recode()` to create a version called `recode_if()` that only applies the recoding when a secondary condition is met.
 
 ## Standard `recode()`
 

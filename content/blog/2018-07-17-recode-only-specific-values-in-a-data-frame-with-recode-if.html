@@ -33,12 +33,12 @@ Finally, you’d like to make it extremely clear in your code which values were 
 ## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
 <p>There are three issues in the <code>code</code> column that need to be rectified:</p>
 <ol style="list-style-type: decimal">
-<li><p>One value is <code>999</code> when it should be <code>SYP</code>.</p></li>
-<li><p>The <code>AWG</code> value for Bernie O’Reilly is repeated and should be <code>CLP</code>.</p></li>
-<li><p>Two of the values for recently added people start with a <code>_</code> that should be removed. Here, recently added means <code>id &gt;= 5000</code>.</p></li>
+<li><p>One value is <code>999</code> when it should be <code>SYP</code> (row 6).</p></li>
+<li><p>The <code>AWG</code> value for Bernie O’Reilly (row 3) was miscoded at the time of data entry and should be <code>CLP</code>.</p></li>
+<li><p>Two of the values for recently added people start with a <code>_</code> that should be removed (rows 4 and 8). Here, recently added means <code>id &gt;= 5000</code>.</p></li>
 </ol>
-<p>Note that in this context, applying a function to transform the <code>code</code> column won’t be as clear as directly declaring that you are recoding <code>&quot;AWG&quot;</code> as <code>&quot;CLP&quot;</code> for person 3989.</p>
-<p>To do this, we’ll build on the dplyr function <code>recode()</code>.</p>
+<p>Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding <code>&quot;AWG&quot;</code> as <code>&quot;CLP&quot;</code> for person 3989.</p>
+<p>To do this, we’ll build on the dplyr function <code>recode()</code> to create a version called <code>recode_if()</code> that only applies the recoding when a secondary condition is met.</p>
 <div id="standard-recode" class="section level2">
 <h2>Standard <code>recode()</code></h2>
 <p>The first issue can be fixed with a standard use of <code>recode()</code> from dplyr.</p>
