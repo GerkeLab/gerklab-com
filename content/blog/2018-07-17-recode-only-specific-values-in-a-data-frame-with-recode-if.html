@@ -16,95 +16,127 @@ hero_bg: "/img/hero/victor-garcia-645096-unsplash.jpg"
 <p>Suppose your data set has a column that contains errors in a small number of values.
 Additionally, you know that the location of these errors can be determined based on another column, such as an ID.
 Finally, you’d like to make it extremely clear in your code which values were changed and to what so that there is no confusion among your collaborators (or your future self).</p>
-<p>For example, consider the following completely made up data containing a few issues in the <code>code</code> column.</p>
+<p>For example, consider the following completely made up data containing a few issues in the <code>sequence</code> column.</p>
 <pre class="r"><code>example_data</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       AWG  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              _MXN 
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        999  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           _MKD 
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
-<p>There are three issues in the <code>code</code> column that need to be rectified:</p>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   0       
+##  7  3839 Bernie O&#39;Reilly         Prostate   60      
+##  8  5643 Brionna Kuphal-Fadel    Breast     99      
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     0       
+## 13  5757 Gabriela Kassulke       Cervical   60      
+## 14  6702 Ty Lynch                Lung       99      
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      1       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
+<p>There are three issues in the <code>sequence</code> column that need to be rectified:</p>
 <ol style="list-style-type: decimal">
-<li><p>One value is <code>999</code> when it should be <code>SYP</code> (row 6).</p></li>
-<li><p>The <code>AWG</code> value for Bernie O’Reilly (row 3) was miscoded at the time of data entry and should be <code>CLP</code>.</p></li>
-<li><p>Two of the values for recently added people start with a <code>_</code> that should be removed (rows 4 and 8). Here, recently added means <code>id &gt;= 5000</code>.</p></li>
+<li><p>Two values are <code>99</code> when they should be <code>1</code> (rows 8 and 14).</p></li>
+<li><p>One of the <code>sequence</code> values for Abigale Senger-Schimmel (row 17) was miscoded at the time of data entry and should be <code>3</code>.</p></li>
+<li><p>Two pairs of values came from an old coding system when the values <code>0</code> and <code>60</code> were used instead of <code>1</code> and <code>2</code>, respectively (rows 7, 8, 13, and 14).</p></li>
 </ol>
-<p>Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding <code>&quot;AWG&quot;</code> as <code>&quot;CLP&quot;</code> for person 3989.</p>
+<p>Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding <code>0</code> as <code>1</code> and <code>60</code> as <code>2</code>.</p>
 <p>To do this, we’ll build on the dplyr function <code>recode()</code> to create a version called <code>recode_if()</code> that only applies the recoding when a secondary condition is met.</p>
 <div id="standard-recode" class="section level2">
 <h2>Standard <code>recode()</code></h2>
 <p>The first issue can be fixed with a standard use of <code>recode()</code> from dplyr.</p>
 <pre class="r"><code>example_data &lt;- example_data %&gt;% 
-  mutate(code = recode(code, &quot;999&quot; = &quot;SYP&quot;))
+  mutate(sequence = recode(sequence, &quot;99&quot; = &quot;1&quot;))
 example_data</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       AWG  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              _MXN 
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        SYP  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           _MKD 
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   0       
+##  7  3839 Bernie O&#39;Reilly         Prostate   60      
+##  8  5643 Brionna Kuphal-Fadel    Breast     1       
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     0       
+## 13  5757 Gabriela Kassulke       Cervical   60      
+## 14  6702 Ty Lynch                Lung       1       
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      1       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
 <p><code>recode()</code> is a vectorized version of <code>switch()</code>.
-In the above example, <code>recode()</code> works by taking any value of <code>code</code> equal to <code>999</code> and <em>recoding it</em> as <code>&quot;SYP&quot;</code>.</p>
+In the above example, <code>recode()</code> works by taking any value of <code>sequence</code> equal to <code>99</code> and <em>recoding it</em> as <code>1</code>.</p>
 </div>
 <div id="recode_if" class="section level2">
 <h2><code>recode_if()</code></h2>
 <p>For the second two issues, we need to condition the value updating on a second column.
-By this, we mean that we can’t use the value of <code>code</code> directly to choose which value to update – for example, we need to change the value of <code>code</code> when it equals <code>AWG</code>, but only for <code>id == 3839</code>.</p>
+By this, we mean that we can’t use the value of <code>sequence</code> directly to choose which value to update – for example, we need to change the value of <code>sequence</code> when it equals <code>1</code>, but only for <code>id == 2702 &amp; cancerSite == &quot;Brain&quot;</code>.</p>
 <p>To do this we introduce a simple function called <code>recode_if()</code> that provides a wrapper around <code>if_else()</code> and <code>recode()</code>.</p>
 <pre class="r"><code>recode_if &lt;- function(x, condition, ...) {
   if_else(condition, recode(x, ...), x)
 }</code></pre>
-<p>Then we apply this function to change the value of <code>code</code> to <code>&quot;CLP&quot;</code> for the person with <code>id == 3839</code>.</p>
+<p>Then we apply this function to change the value of <code>sequence</code> to <code>3</code> for the person with <code>id == 2702 &amp; cancerSite == &quot;Brain&quot;</code>.</p>
 <pre class="r"><code>example_data &lt;- example_data %&gt;%
-  mutate(code = recode_if(code, id == 3839, &quot;AWG&quot; = &quot;CLP&quot;))
+  mutate(sequence = recode_if(sequence, id == 2702 &amp; cancerSite == &quot;Brain&quot;, &quot;1&quot; = &quot;3&quot;))
 
 example_data</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       CLP  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              _MXN 
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        SYP  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           _MKD 
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
-<p>And finally, we strip the leading <code>&quot;_&quot;</code> character for people with <code>id &gt;= 5000</code> using <code>recode_if()</code>.</p>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   0       
+##  7  3839 Bernie O&#39;Reilly         Prostate   60      
+##  8  5643 Brionna Kuphal-Fadel    Breast     1       
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     0       
+## 13  5757 Gabriela Kassulke       Cervical   60      
+## 14  6702 Ty Lynch                Lung       1       
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      3       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
+<p>And finally, we correct the historical uses of <code>0</code> and <code>60</code> in the <code>sequence</code> variable using <code>recode_if()</code>.</p>
 <pre class="r"><code>example_data &lt;- example_data %&gt;%
-  mutate(code = recode_if(code, id &gt;= 5000, &quot;_MXN&quot; = &quot;MXN&quot;, &quot;_MKD&quot; = &quot;MKD&quot;))
+  mutate(sequence = recode_if(sequence, id %in% c(3839, 5757), &quot;0&quot; = &quot;1&quot;, &quot;60&quot; = &quot;2&quot;))
 
 example_data</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       CLP  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              MXN  
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        SYP  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           MKD  
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   1       
+##  7  3839 Bernie O&#39;Reilly         Prostate   2       
+##  8  5643 Brionna Kuphal-Fadel    Breast     1       
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     1       
+## 13  5757 Gabriela Kassulke       Cervical   2       
+## 14  6702 Ty Lynch                Lung       1       
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      3       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
 </div>
 <div id="comparison" class="section level2">
 <h2>Comparison</h2>
@@ -112,54 +144,28 @@ example_data</code></pre>
 <code>recode()</code> and <code>recode_if()</code> are two methods that are useful, but there are others.
 In our opinion, the explict mapping of old values to new values in <code>recode()</code> and <code>recode_if()</code> makes the code clearer and easier to understand from a distance.</p>
 <p>Another option is to use <code>if_else()</code> directly</p>
-<pre class="r"><code>example_data_orig %&gt;% 
-  mutate(
-    code = if_else(code == &quot;999&quot;, &quot;SYP&quot;, code),
-    code = if_else(id == 3839, &quot;CLP&quot;, code),
-    code = if_else(id &gt;= 5000,
-                   if_else(code %in% c(&quot;_MXN&quot;, &quot;_MKD&quot;), 
-                           sub(&quot;^_&quot;, &quot;&quot;, code),
-                           code),
-                   code)
-  )</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       CLP  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              MXN  
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        SYP  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           MKD  
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
+<pre class="r"><code># example_data_orig %&gt;% 
+#   mutate(
+#     code = if_else(code == &quot;999&quot;, &quot;SYP&quot;, code),
+#     code = if_else(id == 3839, &quot;CLP&quot;, code),
+#     code = if_else(id &gt;= 5000,
+#                    if_else(code %in% c(&quot;_MXN&quot;, &quot;_MKD&quot;), 
+#                            sub(&quot;^_&quot;, &quot;&quot;, code),
+#                            code),
+#                    code)
+#   )</code></pre>
 <p>but the nested <code>if_else()</code> statements gets unwieldy when there are multiple values.</p>
 <p>A third option is to use <code>case_when()</code>, as in</p>
-<pre class="r"><code>example_data_orig %&gt;% 
-  mutate(
-    code = case_when(
-      code == &quot;999&quot; ~ &quot;SYP&quot;,
-      id == 3839 ~ &quot;CLP&quot;,
-      id &gt;= 5000 &amp; code == &quot;_MXN&quot; ~ &quot;MXN&quot;,
-      id &gt;= 5000 &amp; code == &quot;_MKD&quot; ~ &quot;MKD&quot;,
-      TRUE ~ code
-    )
-  )</code></pre>
-<pre><code>## # A tibble: 10 x 4
-##       id name                    job                               code 
-##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                             &lt;chr&gt;
-##  1  8350 Nolia Osinski           Research officer, political party XDR  
-##  2  1045 Dr. Gorge Green         Sports administrator              AWG  
-##  3  3839 Bernie O&#39;Reilly         Ship broker                       CLP  
-##  4  5643 Brionna Kuphal-Fadel    Sports administrator              MXN  
-##  5  1891 Patsy Lind-Halvorson    Purchasing manager                SEK  
-##  6  1506 Samual Fay              Ergonomist                        SYP  
-##  7  5757 Gabriela Kassulke       Engineer, drilling                HTG  
-##  8  6702 Dr. Ty Lynch            Physiological scientist           MKD  
-##  9  2702 Abigale Senger-Schimmel Engineer, energy                  BTN  
-## 10  3622 Regis Stracke-Bartell   Surveyor, minerals                THB</code></pre>
+<pre class="r"><code># example_data_orig %&gt;% 
+#   mutate(
+#     code = case_when(
+#       code == &quot;999&quot; ~ &quot;SYP&quot;,
+#       id == 3839 ~ &quot;CLP&quot;,
+#       id &gt;= 5000 &amp; code == &quot;_MXN&quot; ~ &quot;MXN&quot;,
+#       id &gt;= 5000 &amp; code == &quot;_MKD&quot; ~ &quot;MKD&quot;,
+#       TRUE ~ code
+#     )
+#   )</code></pre>
 <p>but the repeated <code>id &gt;= 5000</code> filter makes the recoding less clear.
 (Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)</p>
 <hr />
