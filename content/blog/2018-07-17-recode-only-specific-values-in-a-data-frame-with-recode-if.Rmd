@@ -48,7 +48,7 @@ Suppose your data set has a column that contains errors in a small number of val
 Additionally, you know that the location of these errors can be determined based on another column, such as an ID.
 Finally, you'd like to make it extremely clear in your code which values were changed and to what so that there is no confusion among your collaborators (or your future self).
 
-For example, consider the following completely made up data containing a few issues in the `sequence` column.
+For example, consider the following completely made up data containing a few issues in the `sequence` column. In short, these imaginary data capture patients' hospital visits in which they are diagnosed with cancer. Some patients are diagnosed with multiple cancers, and the `sequence` variable records in what order cancers were diagnosed. Problems with the `sequence` values can occur from errors at the time of manual data entry or through historical changes in coding standards for this variable. Note that, while the data entries are fictitious, the problem is based on the real experiences of our group and others who use cancer registry systems.
 
 ```{r}
 example_data
@@ -150,7 +150,6 @@ example_data_orig %>%
 ```
 
 but the repeated `id %in% c(3839, 5757)` filter makes the recoding overly verbose and potentially less clear.
-(Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)
 
 ---
 

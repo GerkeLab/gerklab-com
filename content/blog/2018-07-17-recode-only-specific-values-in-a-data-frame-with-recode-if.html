@@ -16,7 +16,7 @@ hero_bg: "/img/hero/victor-garcia-645096-unsplash.jpg"
 <p>Suppose your data set has a column that contains errors in a small number of values.
 Additionally, you know that the location of these errors can be determined based on another column, such as an ID.
 Finally, you’d like to make it extremely clear in your code which values were changed and to what so that there is no confusion among your collaborators (or your future self).</p>
-<p>For example, consider the following completely made up data containing a few issues in the <code>sequence</code> column.</p>
+<p>For example, consider the following completely made up data containing a few issues in the <code>sequence</code> column. In short, these imaginary data capture patients’ hospital visits in which they are diagnosed with cancer. Some patients are diagnosed with multiple cancers, and the <code>sequence</code> variable records in what order cancers were diagnosed. Problems with the <code>sequence</code> values can occur from errors at the time of manual data entry or through historical changes in coding standards for this variable. Note that, while the data entries are fictitious, the problem is based on the real experiences of our group and others who use cancer registry systems.</p>
 <pre class="r"><code>example_data</code></pre>
 <pre><code>## # A tibble: 18 x 4
 ##       id name                    cancerSite sequence
@@ -209,8 +209,7 @@ In our opinion, the explict mapping of old values to new values in <code>recode(
 ## 16  2702 Abigale Senger-Schimmel Ovarian    2       
 ## 17  2702 Abigale Senger-Schimmel Brain      3       
 ## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
-<p>but the repeated <code>id %in% c(3839, 5757)</code> filter makes the recoding overly verbose and potentially less clear.
-(Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)</p>
+<p>but the repeated <code>id %in% c(3839, 5757)</code> filter makes the recoding overly verbose and potentially less clear.</p>
 <hr />
 <p>Cover photo by: Photo by <a href="https://unsplash.com/photos/0yL6nXhn0pI?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Victor Garcia</a> on <a href="https://unsplash.com/search/photos/grid?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></p>
 </div>
