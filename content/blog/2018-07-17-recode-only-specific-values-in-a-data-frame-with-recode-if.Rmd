@@ -119,16 +119,17 @@ In our opinion, the explict mapping of old values to new values in `recode()` an
 Another option is to use `if_else()` directly
 
 ```{r}
-# example_data_orig %>% 
-#   mutate(
-#     code = if_else(code == "999", "SYP", code),
-#     code = if_else(id == 3839, "CLP", code),
-#     code = if_else(id >= 5000,
-#                    if_else(code %in% c("_MXN", "_MKD"), 
-#                            sub("^_", "", code),
-#                            code),
-#                    code)
-#   )
+example_data_orig %>%
+  mutate(
+    sequence = if_else(sequence == "99", "1", sequence),
+    sequence = if_else(id == 2702 & cancerSite == "Brain", "3", sequence),
+    sequence = if_else(id %in% c(3839, 5757),
+                  if_else(sequence == "0", "1", 
+                     if_else(sequence == "60", "2", 
+                        sequence),
+                      sequence), 
+                  sequence)
+  )
 ```
 
 but the nested `if_else()` statements gets unwieldy when there are multiple values.
@@ -136,19 +137,19 @@ but the nested `if_else()` statements gets unwieldy when there are multiple valu
 A third option is to use `case_when()`, as in
 
 ```{r}
-# example_data_orig %>% 
-#   mutate(
-#     code = case_when(
-#       code == "999" ~ "SYP",
-#       id == 3839 ~ "CLP",
-#       id >= 5000 & code == "_MXN" ~ "MXN",
-#       id >= 5000 & code == "_MKD" ~ "MKD",
-#       TRUE ~ code
-#     )
-#   )
+example_data_orig %>%
+  mutate(
+    sequence = case_when(
+      sequence == "99" ~ "1",
+      id == 2702 & cancerSite == "Brain" ~ "3",
+      id %in% c(3839, 5757) & sequence == "0" ~ "1",
+      id %in% c(3839, 5757) & sequence == "60" ~ "2",
+      TRUE ~ sequence
+    )
+  )
 ```
 
-but the repeated `id >= 5000` filter makes the recoding less clear.
+but the repeated `id %in% c(3839, 5757)` filter makes the recoding overly verbose and potentially less clear.
 (Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)
 
 ---

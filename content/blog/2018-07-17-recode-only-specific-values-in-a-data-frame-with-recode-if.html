@@ -144,29 +144,72 @@ example_data</code></pre>
 <code>recode()</code> and <code>recode_if()</code> are two methods that are useful, but there are others.
 In our opinion, the explict mapping of old values to new values in <code>recode()</code> and <code>recode_if()</code> makes the code clearer and easier to understand from a distance.</p>
 <p>Another option is to use <code>if_else()</code> directly</p>
-<pre class="r"><code># example_data_orig %&gt;% 
-#   mutate(
-#     code = if_else(code == &quot;999&quot;, &quot;SYP&quot;, code),
-#     code = if_else(id == 3839, &quot;CLP&quot;, code),
-#     code = if_else(id &gt;= 5000,
-#                    if_else(code %in% c(&quot;_MXN&quot;, &quot;_MKD&quot;), 
-#                            sub(&quot;^_&quot;, &quot;&quot;, code),
-#                            code),
-#                    code)
-#   )</code></pre>
+<pre class="r"><code>example_data_orig %&gt;%
+  mutate(
+    sequence = if_else(sequence == &quot;99&quot;, &quot;1&quot;, sequence),
+    sequence = if_else(id == 2702 &amp; cancerSite == &quot;Brain&quot;, &quot;3&quot;, sequence),
+    sequence = if_else(id %in% c(3839, 5757),
+                  if_else(sequence == &quot;0&quot;, &quot;1&quot;, 
+                     if_else(sequence == &quot;60&quot;, &quot;2&quot;, 
+                        sequence),
+                      sequence), 
+                  sequence)
+  )</code></pre>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   1       
+##  7  3839 Bernie O&#39;Reilly         Prostate   2       
+##  8  5643 Brionna Kuphal-Fadel    Breast     1       
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     1       
+## 13  5757 Gabriela Kassulke       Cervical   2       
+## 14  6702 Ty Lynch                Lung       1       
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      3       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
 <p>but the nested <code>if_else()</code> statements gets unwieldy when there are multiple values.</p>
 <p>A third option is to use <code>case_when()</code>, as in</p>
-<pre class="r"><code># example_data_orig %&gt;% 
-#   mutate(
-#     code = case_when(
-#       code == &quot;999&quot; ~ &quot;SYP&quot;,
-#       id == 3839 ~ &quot;CLP&quot;,
-#       id &gt;= 5000 &amp; code == &quot;_MXN&quot; ~ &quot;MXN&quot;,
-#       id &gt;= 5000 &amp; code == &quot;_MKD&quot; ~ &quot;MKD&quot;,
-#       TRUE ~ code
-#     )
-#   )</code></pre>
-<p>but the repeated <code>id &gt;= 5000</code> filter makes the recoding less clear.
+<pre class="r"><code>example_data_orig %&gt;%
+  mutate(
+    sequence = case_when(
+      sequence == &quot;99&quot; ~ &quot;1&quot;,
+      id == 2702 &amp; cancerSite == &quot;Brain&quot; ~ &quot;3&quot;,
+      id %in% c(3839, 5757) &amp; sequence == &quot;0&quot; ~ &quot;1&quot;,
+      id %in% c(3839, 5757) &amp; sequence == &quot;60&quot; ~ &quot;2&quot;,
+      TRUE ~ sequence
+    )
+  )</code></pre>
+<pre><code>## # A tibble: 18 x 4
+##       id name                    cancerSite sequence
+##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
+##  1  8350 Nolia Osinski           Breast     1       
+##  2  8350 Nolia Osinski           Ovarian    2       
+##  3  1045 Gorge Green             Lung       1       
+##  4  1045 Gorge Green             Brain      1       
+##  5  1045 Gorge Green             Bladder    1       
+##  6  3839 Bernie O&#39;Reilly         Prostate   1       
+##  7  3839 Bernie O&#39;Reilly         Prostate   2       
+##  8  5643 Brionna Kuphal-Fadel    Breast     1       
+##  9  1891 Patsy Lind-Halvorson    Thyroid    1       
+## 10  1506 Samual Fay              Prostate   1       
+## 11  1506 Samual Fay              Bone       2       
+## 12  5757 Gabriela Kassulke       Breast     1       
+## 13  5757 Gabriela Kassulke       Cervical   2       
+## 14  6702 Ty Lynch                Lung       1       
+## 15  2702 Abigale Senger-Schimmel Breast     1       
+## 16  2702 Abigale Senger-Schimmel Ovarian    2       
+## 17  2702 Abigale Senger-Schimmel Brain      3       
+## 18  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
+<p>but the repeated <code>id %in% c(3839, 5757)</code> filter makes the recoding overly verbose and potentially less clear.
 (Note that this a contrived example, so pretend this filter is neccessary and unavoidable.)</p>
 <hr />
 <p>Cover photo by: Photo by <a href="https://unsplash.com/photos/0yL6nXhn0pI?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Victor Garcia</a> on <a href="https://unsplash.com/search/photos/grid?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></p>
