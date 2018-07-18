@@ -60,7 +60,7 @@ There are three issues in the `sequence` column that need to be rectified:
 
 1. One of the `sequence` values for Abigale Senger-Schimmel (row 17) was miscoded at the time of data entry and should be `3`.
 
-1. Two pairs of values came from an old coding system when the values `0` and `60` were used instead of `1` and `2`, respectively (rows 7, 8, 13, and 14). 
+1. Two pairs of values came from an old coding system when the values `0` and `60` were used instead of `1` and `2`, respectively (rows 6, 7, 12, and 13). 
 
 Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding `0` as `1` and `60` as `2`.
 

@@ -43,7 +43,7 @@ Finally, you’d like to make it extremely clear in your code which values were 
 <ol style="list-style-type: decimal">
 <li><p>Two values are <code>99</code> when they should be <code>1</code> (rows 8 and 14).</p></li>
 <li><p>One of the <code>sequence</code> values for Abigale Senger-Schimmel (row 17) was miscoded at the time of data entry and should be <code>3</code>.</p></li>
-<li><p>Two pairs of values came from an old coding system when the values <code>0</code> and <code>60</code> were used instead of <code>1</code> and <code>2</code>, respectively (rows 7, 8, 13, and 14).</p></li>
+<li><p>Two pairs of values came from an old coding system when the values <code>0</code> and <code>60</code> were used instead of <code>1</code> and <code>2</code>, respectively (rows 6, 7, 12, and 13).</p></li>
 </ol>
 <p>Note that in this context, because we are changing values from the source data, we want to be especially clear in our code that we are recoding <code>0</code> as <code>1</code> and <code>60</code> as <code>2</code>.</p>
 <p>To do this, we’ll build on the dplyr function <code>recode()</code> to create a version called <code>recode_if()</code> that only applies the recoding when a secondary condition is met.</p>
