@@ -12,8 +12,7 @@ draft: false
             <img alt="Baseline" height="48" src="/img/icons/notebook-pencil.svg" width="48">
           </figure>
           <h3>Blog</h3>
-          <p>One of life's quiet excitements is to stand somewhat apart from yourself and watch yourself softly becoming the
-            author of something beautiful.</p>
+          <!-- <p>Tag line</p> -->
         </a>
       </div>
     </div>
@@ -24,7 +23,7 @@ draft: false
             <img alt="Typography" height="48" src="/img/icons/briefcase.svg" width="48">
           </figure>
           <h3>Projects</h3>
-          <p>Imagination is more powerful than knowledge. That's why events are always reinterpreted when values change.</p>
+          <!-- <p>Tag line</p> -->
         </a>
       </div>
     </div>
@@ -35,7 +34,7 @@ draft: false
             <img alt="Minimalism" height="48" src="/img/icons/document.svg" width="48">
           </figure>
           <h3>Publications</h3>
-          <p>What you'll discover will be wonderful. What you'll discover will be yourself.</p>
+          <!-- <p>Tag line</p> -->
         </a>
         </div>
     </div>
