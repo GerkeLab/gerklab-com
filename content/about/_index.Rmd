@@ -16,8 +16,8 @@ library(glue)
 links <- list(
   "Travis Gerke" = list(
     email = "Travis.Gerke@moffitt.org",
-    twitter = "travisgerke",
     github = "tgerke",
+    twitter = "travisgerke",
     link = "travisgerke.com"
   ),
   "Jordan Creed" = list(
@@ -26,8 +26,8 @@ links <- list(
   ),
   "Garrick Aden-Buie" = list(
     email = "Garrick.Aden-Buie@moffitt.org",
-    twitter = "grrrck",
     github = "gadenbuie",
+    twitter = "grrrck",
     link = "garrickadenbuie.com"
   )
 )
@@ -61,44 +61,56 @@ make_table <- function(name) {
     sep = "\n"
   )
 }
+
+headshot_image <- function(img) {
+  paste0('<div class="headshot-container"><img class="headshot w90" src="', img, '"></div>')
+}
 ```
 
+:::::: {.row .gutters .about-card}
+:::: {.col .col-6}
+## Travis Gerke
+
+`r headshot_image("/img/headshot-gerke.jpg")`
+
+`r make_table("Travis Gerke")`
+
+::::
+:::: {.col .col-6}
+
+My active line of research lies in integrative molecular cancer epidemiology, and is driven by concurrent interests in biostatistical methods development and computational biology. 
+Several of my recent publications investigate tumor-based biomarkers (DNA/mRNA/protein) that can distinguish aggressive from non-aggressive prostate cancers in large prospective cohorts. 
+My methodological interests in this area concern ways in which high-dimensional data analysis techniques can be modified to discover markers that are highly specific for indolent cancer types. 
+With regard to computational biology and statistics, I also collaborate on efforts to streamline processing, analysis, and epidemiologic translation of large-scale genomic databases such as The Cancer Genome Atlas (TCGA) and the Gene Expression Omnibus. 
+Finally, an emerging research interest of mine applies contemporary methods in causal inference to existing clinical trial data in order to discover optimal treatment sequences for metastatic castration-resistant prostate cancer.
+
+For a full list of publications and other academic activities, please see my [complete CV](http://travisgerke.com/cv/).
+
+::::
+::::::
 
 
-<div class="row gutter about-card">
-  <div class="col col-4">
-  <h2>Travis Gerke</h2>
-  <img class="headshot w90" src="/img/headshot-gerke.jpg">
-  `r make_table("Travis Gerke")`
-</div>
-<div class="col col-8">
-  <p>My active line of research lies in integrative molecular cancer epidemiology, and is driven by concurrent interests in biostatistical methods development and computational biology. Several of my recent publications investigate tumor-based biomarkers (DNA/mRNA/protein) that can distinguish aggressive from non-aggressive prostate cancers in large prospective cohorts. My methodological interests in this area concern ways in which high-dimensional data analysis techniques can be modified to discover markers that are highly specific for indolent cancer types. With regard to computational biology and statistics, I also collaborate on efforts to streamline processing, analysis, and epidemiologic translation of large-scale genomic databases such as The Cancer Genome Atlas (TCGA) and the Gene Expression Omnibus. Finally, an emerging research interest of mine applies contemporary methods in causal inference to existing clinical trial data in order to discover optimal treatment sequences for metastatic castration-resistant prostate cancer.<p>
-  <p>For a full list of publications and other academic activities, please see my [complete CV](http://travisgerke.com/cv/).</p>
-  </div>
-</div>
+:::::: {.row .gutters}
+:::: {.col .col-6 .about-card}
+## Jordan Creed
 
-<div class="row gutter about-card">
-  <div class="col col-4">
-  <h2>Jordan Creed</h2>
-  `r make_table("Jordan Creed")`
-</div>
-<div class="col col-8">
-Shoulder fugiat hamburger veniam kevin ham hock frankfurter ex bacon qui quis prosciutto duis ham leberkas. Sint et occaecat veniam jowl ad alcatra mollit ground round. Kielbasa enim veniam labore, tail nostrud ut est. Pastrami dolor salami jowl, lorem ea consectetur id minim aliqua. Ex tongue magna deserunt flank turducken.
+`r headshot_image("/img/headshot-jordan.png")`
 
-Alcatra brisket mollit pariatur pork loin ham veniam in magna cow ipsum pastrami. Pariatur cupim sint ad adipisicing ut, tempor lorem short ribs. Minim ground round in, cillum velit ad reprehenderit leberkas dolore chicken enim sed laborum shoulder. Corned beef in et, chuck ad sausage reprehenderit cillum tongue capicola ut. Sirloin qui consectetur incididunt landjaeger. Cillum bacon pig ribeye frankfurter. Venison bacon ribeye duis enim flank.
-  </div>
-</div>
+`r make_table("Jordan Creed")`
 
-<div class="row gutter about-card">
-  <div class="col col-4">
-  <h2>Garrick <span style="white-space: nowrap">Aden-Buie</span></h2>
-  <img class="headshot w90" src="/img/headshot-garrick.jpg">
-  `r make_table("Garrick Aden-Buie")`
-</div>
-<div class="col col-8">
-Spicy jalapeno bacon ipsum dolor amet short loin sint pig ad laborum, landjaeger mollit cillum. Anim biltong minim dolore cow. Adipisicing tenderloin anim, kielbasa ex occaecat nostrud irure veniam. Anim in minim sint. Burgdoggen duis lorem corned beef andouille sed cupidatat mollit pariatur.
+Jordan is a Research Data Analyst...
 
-Incididunt pancetta duis, salami t-bone sint lorem pork belly tenderloin leberkas pig doner. Eu turkey short loin swine flank ut pork loin enim beef jowl kevin cupim elit shank. In qui laborum reprehenderit, et jerky jowl eu flank leberkas cupim ea. Ut shankle pastrami fatback pork elit id mollit hamburger short loin sint picanha beef ribs. Duis mollit doner in occaecat brisket. Tenderloin rump venison consequat pork loin ut boudin voluptate. Picanha enim short ribs pancetta ipsum quis chicken pariatur meatloaf.
-  </div>
-</div>
+::::
 
+:::: {.col .col-6 .about-card}
+## Garrick <span style="white-space: nowrap">Aden-Buie</span>
+
+`r headshot_image("/img/headshot-garrick.jpg")`
+
+`r make_table("Garrick Aden-Buie")`
+
+Garrick is a Research Data Analyst and expert R developer and educator who is passionate about reproducible research and applying software carpentry best practices within scientific computing.
+He is an ABD doctoral candidate in the department of Industrial Engineering at the University of South Florida, where he built technological and data driven solutions for smart, healthy aging.
+While new to the world of bioinformatics, he's excited to be bringing his knowledge of data science dev ops and analytics to Gerke Lab and computational biology.
+::::
+::::::
