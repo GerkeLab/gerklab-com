@@ -1,6 +1,7 @@
 ---
 title: "So You'd Like to Make an R Package?"
-author: Garrick Aden-Buie
+author: 
+  - Garrick Aden-Buie
 date: 2018-07-03
 categories: ["R", "R Package", "R Development"]
 description: A guide and workflow for planning your next R package.
