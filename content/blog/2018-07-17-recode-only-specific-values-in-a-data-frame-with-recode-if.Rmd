@@ -1,0 +1,176 @@
+---
+title: Conditional recoding of values in a data frame with recode_if()
+author: 
+  - Garrick Aden-Buie
+  - Travis Gerke
+date: '2018-07-17'
+slug: recode-if
+categories: 
+  - R
+tags:
+  - R
+  - Script
+  - Tips
+hero_bg: "/img/hero/victor-garcia-645096-unsplash.jpg"
+hero_credit: "[Victor Garcia](https://unsplash.com/photos/0yL6nXhn0pI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/search/photos/grid?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)"
+---
+
+```{r settings, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# knit_print.tbl_df = function(x, ...) {
+#     res = paste(c("", "", knitr::kable(x)), collapse = "\n")
+#     knitr::asis_output(res)
+# }
+
+library(dplyr)
+example_data <- tibble::tribble(
+   ~id,                     ~name, ~cancerSite, ~sequence,
+  3839,         "Bernie O'Reilly",  "Prostate",       "0", #1
+  3839,         "Bernie O'Reilly",  "Prostate",      "60", #2
+  5643,    "Brionna Kuphal-Fadel",    "Breast",      "99", #1
+  1506,              "Samual Fay",  "Prostate",       "1",
+  1506,              "Samual Fay",      "Bone",       "2",
+  5757,       "Gabriela Kassulke",    "Breast",       "0", #1
+  5757,       "Gabriela Kassulke",  "Cervical",      "60", #2
+  6702,                "Ty Lynch",      "Lung",      "99", #1
+  2702, "Abigale Senger-Schimmel",    "Breast",       "1",
+  2702, "Abigale Senger-Schimmel",   "Ovarian",       "2",
+  2702, "Abigale Senger-Schimmel",     "Brain",       "1", #3
+  3622,   "Regis Stracke-Bartell",          NA,       "0"
+  )
+example_data_orig <- example_data
+```
+
+Suppose your data set has a column that contains errors in a small number of values.
+Additionally, you know that the location of these errors can be determined based on another column, such as an ID.
+Finally, you'd like to make it extremely clear in your code which values were changed and to what so that there is no confusion among your collaborators (or your future self).
+
+For example, consider the following completely made up data containing a few issues in the `sequence` column. 
+In short, these imaginary data capture patients' hospital visits in which they are diagnosed with cancer. 
+Some patients are diagnosed with multiple cancers and the `sequence` variable records in what order cancers were diagnosed. 
+Problems with the `sequence` values can occur from errors at the time of manual data entry or through historical changes in coding standards for this variable. 
+Note that, while the data entries are fictitious, the problem is based on the real experiences of our group and others who use cancer registry systems.
+
+```{r}
+example_data
+```
+
+There are three issues in the `sequence` column that need to be rectified:
+
+1. Two values are `99` when they should be `1` (rows `r knitr::combine_words(which(example_data$sequence == "99"))`).
+
+1. One of the `sequence` values for Abigale Senger-Schimmel (row `r which(with(example_data, name == "Abigale Senger-Schimmel" & cancerSite == "Brain"))`) was miscoded at the time of data entry and should be `3`.
+
+1. Two pairs of values came from an old coding system when the values `0` and `60` were used instead of `1` and `2`, respectively (rows `r knitr::combine_words(which(example_data$sequence %in% c("0", "60") & !is.na(example_data$cancerSite)))`). 
+
+Note that in this context, because we are changing values from the source data, we want it to be especially clear to any readers of our code (collaborators or ourselves when reporting results) which changes were made.
+
+To do this, we'll build on the dplyr function `recode()` to create a version called `recode_if()` that only applies the recoding when a secondary condition is met.
+
+## Standard `recode()`
+
+The first issue can be fixed with a standard use of `recode()` from dplyr.
+
+```{r}
+example_data <- example_data %>% 
+  mutate(sequence = recode(sequence, "99" = "1"))
+example_data
+```
+
+`recode()` is a vectorized version of `switch()`.
+In the above example, `recode()` works by taking any value of `sequence` equal to `99` and _recoding it_ as `1`.
+
+## `recode_if()`
+
+For the second two issues, we need to condition the value updating on a second column.
+By this, we mean that we can't use the value of `sequence` directly to choose which value to update -- for example, we need to change the value of `sequence` when it equals `1`, but only for `id == 2702 & cancerSite == "Brain"`.
+
+To do this we introduce a simple function called `recode_if()` that provides a wrapper around `if_else()` and `recode()`.
+
+```{r}
+recode_if <- function(x, condition, ...) {
+  if_else(condition, recode(x, ...), x)
+}
+```
+
+Then we apply this function to change the value of `sequence` to `3` for the person with `id == 2702 & cancerSite == "Brain"`.
+
+```{r}
+example_data <- example_data %>%
+  mutate(sequence = recode_if(sequence, id == 2702 & cancerSite == "Brain", "1" = "3"))
+
+example_data
+```
+
+And finally, we correct the historical uses of `0` and `60` in the `sequence` variable using `recode_if()`.
+
+```{r}
+example_data <- example_data %>%
+  mutate(sequence = recode_if(sequence, !is.na(cancerSite), "0" = "1", "60" = "2"))
+
+example_data
+```
+
+## Comparison
+
+The example here was contrived, but it's not uncommon to need to change the value in a single row/column pair in a data frame during cleaning.
+`recode()` and `recode_if()` are two methods that are useful, but there are others.
+In our opinion, the explict mapping of old values to new values in `recode()` and `recode_if()` makes the code clearer and easier to understand from a distance.
+
+Here's the full method using `recode()` and `recode_if()`.
+
+```{r eval=FALSE}
+example_data_orig %>% 
+  mutate(
+    sequence = recode(sequence, "99" = "1"),
+    sequence = recode_if(sequence, id == 2702 & cancerSite == "Brain", "1" = "3"),
+    sequence = recode_if(sequence, !is.na(cancerSite), "0" = "1", "60" = "2")
+  )
+```
+
+Another option is to use `if_else()` directly
+
+```{r}
+example_data_orig %>%
+  mutate(
+    sequence = if_else(sequence == "99", "1", sequence),
+    sequence = if_else(id == 2702 & cancerSite == "Brain", "3", sequence),
+    sequence = if_else(!is.na(cancerSite) & sequence == "0", "1", sequence),
+    sequence = if_else(!is.na(cancerSite) & sequence == "60", "2", sequence)
+  )
+```
+
+but the collection of `if_else()` statements is difficult to read overall, and even moreso if the third issue is coded as a series of nested `if_else()` statements.
+
+```
+example_data_orig %>%
+  mutate(
+    sequence = if_else(sequence == "99", "1", sequence),
+    sequence = if_else(id == 2702 & cancerSite == "Brain", "3", sequence),
+    sequence = if_else(!is.na(cancerSite),
+                  if_else(sequence == "0", "1", 
+                     if_else(sequence == "60", "2", 
+                        sequence),
+                      sequence), 
+                  sequence)
+  )
+```
+
+
+A third option is to use `case_when()`, as in
+
+```{r}
+example_data_orig %>%
+  mutate(
+    sequence = case_when(
+      sequence == "99" ~ "1",
+      id == 2702 & cancerSite == "Brain" ~ "3",
+      !is.na(cancerSite) & sequence == "0" ~ "1",
+      !is.na(cancerSite) & sequence == "60" ~ "2",
+      TRUE ~ sequence
+    )
+  )
+```
+
+but the repeated `!is.na(cancerSite)` filter makes the recoding overly verbose and potentially less clear.

@@ -5,6 +5,9 @@ theme = "kube"
 Paginate = 4
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
+[permalinks]
+  blog = "/blog/:year/:month/:slug/"
+
 [Params]
   RSSLink = "/index.xml"
   author = "Gerke Lab" # add your company name
