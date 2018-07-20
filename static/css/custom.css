@@ -69,11 +69,12 @@ sup {
   height: 100%;
   width: 100%;
   padding: 15px;
-  border: 1px solid white;
+  transition: all 0.3s ease-in-out;
 }
 .frontpage-link-container:hover {
-  border: 1px solid #989898;
-  border-radius: 5px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
 }
 .frontpage-link {
   display: block;
@@ -83,6 +84,47 @@ sup {
 }
 .frontpage-link-container:hover h3 {
   color: #D3751C;
+  transition: all 0.3s ease-in-out;
+}
+.frontpage-link-container:hover path {
+  fill: #D3751C;
+  transition: all 0.3s ease-in-out;
+}
+.frontpage-link-container h3 {
+  color: #6e6e6e;
+  transition: all 0.3s ease-in-out;
+}
+.frontpage-link-container path {
+  fill: #6e6e6e;
+  transition: all 0.3s ease-in-out;
+}
+/* Secret for later: https://jtauber.github.io/articles/css-hexagon.html */
+.hex:before {
+    content: " ";
+    width: 0; height: 0;
+    border-bottom: 30px solid #6C6;
+    border-left: 52px solid transparent;
+    border-right: 52px solid transparent;
+    position: absolute;
+    top: -30px;
+}
+
+.hex {
+    margin-top: 30px;
+    width: 104px;
+    height: 60px;
+    background-color: #6C6;
+    position: relative;
+}
+
+.hex:after {
+    content: "";
+    width: 0;
+    position: absolute;
+    bottom: -30px;
+    border-top: 30px solid #6C6;
+    border-left: 52px solid transparent;
+    border-right: 52px solid transparent;
 }
 #hero p {
   max-width: 800px;
