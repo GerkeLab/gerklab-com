@@ -62,7 +62,7 @@ There are three issues in the `sequence` column that need to be rectified:
 
 1. One of the `sequence` values for Abigale Senger-Schimmel (row `r which(with(example_data, name == "Abigale Senger-Schimmel" & cancerSite == "Brain"))`) was miscoded at the time of data entry and should be `3`.
 
-1. Two pairs of values came from an old coding system when the values `0` and `60` were used instead of `1` and `2`, respectively (rows `r knitr::combine_words(which(example_data$sequence %in% c("0", "60")))`). 
+1. Two pairs of values came from an old coding system when the values `0` and `60` were used instead of `1` and `2`, respectively (rows `r knitr::combine_words(which(example_data$sequence %in% c("0", "60") & !is.na(example_data$cancerSite)))`). 
 
 Note that in this context, because we are changing values from the source data, we want it to be especially clear to any readers of our code (collaborators or ourselves when reporting results) which changes were made.
 
