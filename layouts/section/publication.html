@@ -9,9 +9,11 @@
   </div>
   <div class="row">
     <div class="col col-8 offset-2">
-      <ul class="publications-list">
         
-        {{ range .Paginator.Pages.ByDate.Reverse }} 
+      {{ range (.Paginate (.Pages.GroupByDate "2006") 10).PageGroups }} 
+      <h2 class="publications-year">{{ .Key }}</h2>
+      <ul class="publications-list">
+        {{ range .Pages }}
         <li itemscope itemtype="http://schema.org/CreativeWork">
           <a href="{{ .Permalink }}" itemprop="headline" class="large">{{ .Title }}</a>
           {{ if .Description }}
@@ -21,8 +23,9 @@
           {{ end }}
         </li> 
         {{ end }}
-        <section>{{ partial "pagination" .}}</section>
       </ul>
+      {{ end }}
+        <section>{{ partial "pagination" .}}</section>
     </div>
   </div>
 </div>
