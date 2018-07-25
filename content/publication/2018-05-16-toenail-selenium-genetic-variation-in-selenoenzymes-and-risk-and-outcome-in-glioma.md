@@ -2,7 +2,17 @@
 title: Toenail selenium, genetic variation in selenoenzymes and risk and outcome in
   glioma
 author:
-  - ''
+  - 'Noah C. Peeri'
+  - 'Jordan H. Creed'
+  - 'Gabriella M. Anic'
+  - 'Reid C. Thompson'
+  - 'Jeffrey J. Olson'
+  - 'Renato V. LaRocca'
+  - 'Sajeel A. Chowdhary'
+  - 'John D. Brockman' 
+  - 'Travis A. Gerke'
+  - 'L. Burton Nabors'
+  - 'Kathleen M. Egan'
 date: '2018-05-16'
 slug: selenium-glioma
 categories: []

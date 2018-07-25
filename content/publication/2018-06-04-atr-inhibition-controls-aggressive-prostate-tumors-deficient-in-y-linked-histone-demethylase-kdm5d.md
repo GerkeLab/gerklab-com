@@ -2,7 +2,27 @@
 title: ATR inhibition controls aggressive prostate tumors deficient in Y-linked histone
   demethylase KDM5D
 author:
-  - ''
+  - 'Kazumasa Komura'
+  - 'Yuki Yoshikawa' 
+  - 'Teppei Shimamura'
+  - 'Goutam Chakraborty'
+  - 'Travis A. Gerke'
+  - 'Kunihiko Hinohara'
+  - 'Kalyani Chadalavada'
+  - 'Seong Ho Jeong'
+  - 'Joshua Armenia' 
+  - 'Shin-Yi Du'
+  - 'Ying Z. Mazzu'
+  - 'Kohei Taniguchi'
+  - 'Naokazu Ibuki'
+  - 'Clifford A. Meyer'
+  - 'Gouri J. Nanjangud'
+  - 'Teruo Inamoto'
+  - 'Gwo-Shu Mary Lee'
+  - 'Lorelei A. Mucci'
+  - 'Haruhito Azuma'
+  - 'Christopher J. Sweeney'
+  - 'Philip W. Kantoff'
 date: '2018-06-04'
 slug: KDM5D
 categories: []
