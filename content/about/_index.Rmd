@@ -99,7 +99,8 @@ For a full list of publications and other academic activities, please see my [co
 
 `r make_table("Jordan Creed")`
 
-Jordan is a Research Data Analyst...
+Jordan is a Research Data Analyst working in the domains of statistics, bioinformatics and epidemiology. 
+Her current work focuses on the molecular epidemiology of prostate and brain cancer.
 
 ::::
 
