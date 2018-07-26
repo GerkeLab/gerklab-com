@@ -10,13 +10,14 @@
   text-align: justify;
 }
 #kube-about h2 {
-  text-align: left;
+  /*text-align: left;*/
 }
 .about-card {
   margin-bottom: 3em;
   border: solid #F0F0F0 2px;
   padding: 2em;
   border-radius: 10px;
+  text-align: center;
 }
 .caption {
   font-style: italic;

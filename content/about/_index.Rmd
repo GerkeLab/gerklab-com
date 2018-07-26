@@ -55,7 +55,7 @@ make_table <- function(name) {
   )
   rows <- paste(rows, collapse = "\n")
   paste(
-    '<table style="width: 90%">',
+    '<table style="width: 85%">',
     rows,
     '</table>',
     sep = "\n"
