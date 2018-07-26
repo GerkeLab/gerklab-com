@@ -2,7 +2,13 @@
 title: 'African-American men and prostate cancer-specific mortality: a competing risk
   analysis of a large institutional cohort, 1989-2015.'
 author:
-  - ''
+  - 'Vonetta L. Williams'
+  - 'Shivanshu Awasthi'
+  - 'Angelina K. Fink'
+  - 'Julio M. Pow‐Sang'
+  - 'Jong Y. Park'
+  - 'Travis Gerke'
+  - 'Kosj Yamoah'
 date: '2018-05-07'
 slug: african-american-men-and-prostate-cancer-specific-mortality
 categories: []
