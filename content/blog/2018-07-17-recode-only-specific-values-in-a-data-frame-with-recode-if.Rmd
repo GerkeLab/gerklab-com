@@ -1,9 +1,10 @@
 ---
 title: Conditional recoding of values in a data frame with recode_if()
+description: A helper function for conditional recoding
 author: 
   - Garrick Aden-Buie
   - Travis Gerke
-date: '2018-07-17'
+date: '2018-08-01'
 slug: recode-if
 categories: 
   - R
