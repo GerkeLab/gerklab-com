@@ -77,7 +77,7 @@ We would like to read in all of the CSV files inside the directory and build one
 
 ## Example Data
 
-To make the example more concrete, we'll use a dataset provided by the Government of Ireland shoing the number of e-referrals per hospital department.
+To make the example more concrete, we'll use a dataset provided by the Government of Ireland showing the number of e-referrals per hospital department.
 We've collected the data for you, which you can [download as a zipfile here][data-download], or you can download the original CSV files from [data.gov.ie][data-orig].
 
 ```{r unzip-data-into-tempdir, include=FALSE}
@@ -150,7 +150,7 @@ Warning messages:
 Setting `read_csv` options for all of the files *almost* works.
 Unfortunately, the format of the `Month_Year` column changed in 2016 from `Jan-15` to `Jan-2016`, so the `Month_Year` column is `NA` for the years 2016 and 2017.
 
-To fix this, the easiest solution is to import as a character and use [[lubridate]]{.pkg} to parse the datetimes, as [readr]{.pkg}'s `col_date()` format only allows for one format.
+To fix this, the easiest solution is to import as a character and use [[lubridate]]{.pkg} to parse the date-times, as [readr]{.pkg}'s `col_date()` format only allows for one format.
 
 ```{r read-all-with-date-fixed}
 library(lubridate)
@@ -163,7 +163,7 @@ csv_files %>%
 ### Add a source indicator
 
 Finally, we may sometimes wish to include an indicator variable that tracks the source of each row, for example to keep track of the file from which the data was collected.
-To do this, we set the `.id` parameter of `map_dfr()` to the name of the indicator variable, and the source filename will be included in the final data set.
+To do this, we set the `.id` parameter of `map_dfr()` to the name of the indicator variable, and the source file name will be included in the final data set.
 
 ```{r read-all-with-source}
 csv_files %>% 

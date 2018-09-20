@@ -29,7 +29,7 @@ library(fs)</code></pre>
 </div>
 <div id="example-data" class="section level2">
 <h2>Example Data</h2>
-<p>To make the example more concrete, we’ll use a dataset provided by the Government of Ireland shoing the number of e-referrals per hospital department.
+<p>To make the example more concrete, we’ll use a dataset provided by the Government of Ireland showing the number of e-referrals per hospital department.
 We’ve collected the data for you, which you can <a href="/data/ie-general-referrals-by-hospital.zip">download as a zipfile here</a>, or you can download the original CSV files from <a href="https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year">data.gov.ie</a>.</p>
 <p>Once we’ve extracted the zip file or downloaded the CSV files a single folder, we store the location of the unzipped folder in <code>data_dir</code>.</p>
 <pre class="r"><code>data_dir &lt;- &quot;ie-general-referrals-by-hospital&quot;</code></pre>
@@ -122,7 +122,7 @@ We can modify the arguments of <code>read_csv()</code> inside the call to <code>
 <h3>Fix date parsing <em>after</em> importing</h3>
 <p>Setting <code>read_csv</code> options for all of the files <em>almost</em> works.
 Unfortunately, the format of the <code>Month_Year</code> column changed in 2016 from <code>Jan-15</code> to <code>Jan-2016</code>, so the <code>Month_Year</code> column is <code>NA</code> for the years 2016 and 2017.</p>
-<p>To fix this, the easiest solution is to import as a character and use <span class="pkg"><a href="https://lubridate.tidyverse.org">lubridate</a></span> to parse the datetimes, as <span class="pkg">readr</span>’s <code>col_date()</code> format only allows for one format.</p>
+<p>To fix this, the easiest solution is to import as a character and use <span class="pkg"><a href="https://lubridate.tidyverse.org">lubridate</a></span> to parse the date-times, as <span class="pkg">readr</span>’s <code>col_date()</code> format only allows for one format.</p>
 <pre class="r"><code>library(lubridate)
 
 csv_files %&gt;% 
@@ -146,7 +146,7 @@ csv_files %&gt;%
 <div id="add-a-source-indicator" class="section level3">
 <h3>Add a source indicator</h3>
 <p>Finally, we may sometimes wish to include an indicator variable that tracks the source of each row, for example to keep track of the file from which the data was collected.
-To do this, we set the <code>.id</code> parameter of <code>map_dfr()</code> to the name of the indicator variable, and the source filename will be included in the final data set.</p>
+To do this, we set the <code>.id</code> parameter of <code>map_dfr()</code> to the name of the indicator variable, and the source file name will be included in the final data set.</p>
 <pre class="r"><code>csv_files %&gt;% 
   map_dfr(read_csv, .id = &quot;source&quot;) %&gt;%
   mutate(Month_Year = myd(Month_Year, truncated= 1))</code></pre>
