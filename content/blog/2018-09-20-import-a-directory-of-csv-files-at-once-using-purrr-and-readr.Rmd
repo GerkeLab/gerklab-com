@@ -1,0 +1,172 @@
+---
+title: Import a Directory of CSV Files at Once Using {purrr} and {readr}
+description: Import all the things with magic (a.k.a. the tidyverse)
+author: 
+  - "Garrick Aden-Buie"
+date: '2018-09-20'
+slug: import-directory-csv-purrr-readr
+categories:
+  - R
+tags:
+  - Tips
+hero_bg: "/img/hero/ethan-weil-528367-unsplash.jpg"
+hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&amp;utm_campaign=photographer-credit).'
+---
+
+[tidyverse]: https://tidyverse.org
+[purrr]: https://purrr.tidyverse.org
+[readr]: https://readr.tidyverse.org
+[lubridate]: https://lubridate.tidyverse.org
+[fs]: https://fs.r-lib.org
+[data-download]: /data/ie-general-referrals-by-hospital.zip
+[data-orig]: https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year
+
+```{r setup, include=FALSE}
+data_zip_file <- here::here("static/data/ie-general-referrals-by-hospital.zip")
+
+# Warning! Everything else after this happens in the tempdir
+knitr::opts_knit$set(root.dir = tempdir())
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r include=FALSE}
+if (!fs::file_exists(data_zip_file)) {
+  links <- c(
+    "https://data.ehealthireland.ie/dataset/956d004b-0ea7-4a38-bc91-40f3b98d13d1/resource/fdce1d22-77cb-4304-ab99-3b913c09b559/download/general-referrals-by-hospital-department-2018.csv",
+    "https://data.ehealthireland.ie/dataset/956d004b-0ea7-4a38-bc91-40f3b98d13d1/resource/cc7f329d-3742-40f3-adc0-0970f3cc4bd9/download/general-referrals-by-hospital-department-2017.csv",
+    "https://data.ehealthireland.ie/dataset/956d004b-0ea7-4a38-bc91-40f3b98d13d1/resource/9aa38e5b-8f47-4225-b6bc-0dce7c3b4ed1/download/general-referrals-by-hospital-department-2016.csv",
+    "https://data.ehealthireland.ie/dataset/956d004b-0ea7-4a38-bc91-40f3b98d13d1/resource/87da0f98-0649-4a3b-8462-3bb0b8bb0894/download/general-referrals-by-hospital-department-2015.csv"
+  )
+  
+  csv_dir <- fs::path(tempdir(), "ie-general-referrals-by-hospital")
+  fs::dir_create(csv_dir)
+  purrr::walk(links, ~ download.file(.x, fs::path(csv_dir, fs::path_file(.x))))
+  cat("General Referrals by Hospital & Department\n", 
+      "Source: https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year",
+      strftime(Sys.time(), "Downloaded: %F %T %Z"),
+      "CC-BY 4.0 License",
+      sep = "\n", file = fs::path(csv_dir, "README.txt"))
+  fs::dir_create(here::here("static/data"))
+  owd <- setwd(tempdir())
+  utils::zip(data_zip_file, files = "ie-general-referrals-by-hospital")
+  setwd(owd)
+}
+```
+
+This post demonstrates how you can use two packages from the [[tidyverse]]{.pkg} -- [[purrr]]{.pkg} and [[readr]]{.pkg} -- to read a list of CSV files into a single data frame in R.
+We'll also use a newer package called [[fs]]{.pkg} for file system operations.
+
+```{r library, echo=FALSE}
+library(tidyverse)  # attaches purrr and readr
+library(fs)
+```
+
+
+```{r install, eval=FALSE}
+# Install packages if you need to
+install.packages(c("tidyverse", "fs"))
+
+<<library>>
+```
+
+## Problem
+
+Suppose we have a directory of CSV files that contain data that are regularly shaped, meaning that columns in each data set are all the same, or at least the columns that overlap are the same.
+
+We would like to read in all of the CSV files inside the directory and build one large dataset by merging each of the smaller data sets together.
+
+## Example Data
+
+To make the example more concrete, we'll use a dataset provided by the Government of Ireland showing the number of e-referrals per hospital department.
+We've collected the data for you, which you can [download as a zipfile here][data-download], or you can download the original CSV files from [data.gov.ie][data-orig].
+
+```{r unzip-data-into-tempdir, include=FALSE}
+data_dir <- tempdir()
+fs::file_copy(here::here("static/data/ie-general-referrals-by-hospital.zip"), data_dir)
+utils::unzip(fs::path(data_dir, "ie-general-referrals-by-hospital.zip"))
+```
+
+Once we've extracted the zip file or downloaded the CSV files a single folder, we store the location of the unzipped folder in `data_dir`.
+
+```{r set-data-dir}
+data_dir <- "ie-general-referrals-by-hospital"
+```
+
+We can then list the CSV files using `fs::dir_ls()`.
+
+```{r list-data-dir}
+fs::dir_ls(data_dir)
+```
+
+Notice that there is an additional `README.txt` file that we don't want to import, so we limit our directory listing to just the CSV files, i.e. the files that end with `.csv`.
+
+```{r list-csv-files}
+csv_files <- fs::dir_ls(data_dir, regexp = "\\.csv$")
+csv_files
+```
+
+## Import all the Files
+
+### Start with one file
+
+Each of the CSV files can be individual read in using `readr::read_csv()`.
+Let's read one file as an example:
+
+```{r read-single}
+readr::read_csv(csv_files[1])
+```
+
+### Scale up to all files
+
+To read all of the files in the directory, we *map* `read_csv()` onto the list of files, using `purrr::map()`.
+But knowing that each list element will be a `tibble` (or `data.frame`) and that each data frame has the same columns, we can use [purrr]{.pkg}'s typed functions to return a single data frame containing each of the imported CSV files using `purrr::map_dfr()`.
+The additional `_dfr()` tells [purrr]{.pkg} to return a data frame (`df`) that by row-binding each element together (`r`).
+
+```{r read-all-bare}
+csv_files %>% 
+  map_dfr(read_csv)
+```
+
+### Modify settings for all files
+
+Notice that the `Month_Year` column was imported as a `character` instead of a `date-time`.
+We can modify the arguments of `read_csv()` inside the call to `map_dfr()`, which sets the arguments for each CSV import.
+
+```{r read-all-with-date}
+csv_files %>% 
+  map_dfr(read_csv, col_types = cols("Month_Year" = col_date(format = "%b-%y")))
+```
+
+```r
+Warning messages:
+1: In rbind(names(probs), probs_f) :
+  number of columns of result is not a multiple of vector length (arg 1)
+2: In rbind(names(probs), probs_f) :
+  number of columns of result is not a multiple of vector length (arg 1)
+```
+
+### Fix date parsing _after_ importing
+
+Setting `read_csv` options for all of the files *almost* works.
+Unfortunately, the format of the `Month_Year` column changed in 2016 from `Jan-15` to `Jan-2016`, so the `Month_Year` column is `NA` for the years 2016 and 2017.
+
+To fix this, the easiest solution is to import as a character and use [[lubridate]]{.pkg} to parse the date-times, as [readr]{.pkg}'s `col_date()` format only allows for one format.
+
+```{r read-all-with-date-fixed}
+library(lubridate)
+
+csv_files %>% 
+  map_dfr(read_csv) %>%
+  mutate(Month_Year = myd(Month_Year, truncated= 1))
+```
+
+### Add a source indicator
+
+Finally, we may sometimes wish to include an indicator variable that tracks the source of each row, for example to keep track of the file from which the data was collected.
+To do this, we set the `.id` parameter of `map_dfr()` to the name of the indicator variable, and the source file name will be included in the final data set.
+
+```{r read-all-with-source}
+csv_files %>% 
+  map_dfr(read_csv, .id = "source") %>%
+  mutate(Month_Year = myd(Month_Year, truncated= 1))
+```
