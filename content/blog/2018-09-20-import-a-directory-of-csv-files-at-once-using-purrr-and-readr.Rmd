@@ -110,7 +110,6 @@ csv_files
 ### Start with one file
 
 Each of the CSV files can be individual read in using `readr::read_csv()`.
-
 Let's read one file as an example:
 
 ```{r read-single}
@@ -120,7 +119,7 @@ readr::read_csv(csv_files[1])
 ### Scale up to all files
 
 To read all of the files in the directory, we *map* `read_csv()` onto the list of files, using `purrr::map()`.
-But knowing that each list element will be a `tibble` and that each data set has the same columns, we can use [purrr]{.pkg}'s typed functions to return a single dataframe containing each of the imported CSV files using `purrr::map_dfr()`.
+But knowing that each list element will be a `tibble` (or `data.frame`) and that each data frame has the same columns, we can use [purrr]{.pkg}'s typed functions to return a single data frame containing each of the imported CSV files using `purrr::map_dfr()`.
 The additional `_dfr()` tells [purrr]{.pkg} to return a data frame (`df`) that by row-binding each element together (`r`).
 
 ```{r read-all-bare}

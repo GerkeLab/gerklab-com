@@ -52,8 +52,8 @@ csv_files</code></pre>
 <h2>Import all the Files</h2>
 <div id="start-with-one-file" class="section level3">
 <h3>Start with one file</h3>
-<p>Each of the CSV files can be individual read in using <code>readr::read_csv()</code>.</p>
-<p>Let’s read one file as an example:</p>
+<p>Each of the CSV files can be individual read in using <code>readr::read_csv()</code>.
+Let’s read one file as an example:</p>
 <pre class="r"><code>readr::read_csv(csv_files[1])</code></pre>
 <pre><code>## # A tibble: 837 x 6
 ##    Month_Year Hospital_Name Hospital_ID Hospital_Depart… ReferralType
@@ -73,7 +73,7 @@ csv_files</code></pre>
 <div id="scale-up-to-all-files" class="section level3">
 <h3>Scale up to all files</h3>
 <p>To read all of the files in the directory, we <em>map</em> <code>read_csv()</code> onto the list of files, using <code>purrr::map()</code>.
-But knowing that each list element will be a <code>tibble</code> and that each data set has the same columns, we can use <span class="pkg">purrr</span>’s typed functions to return a single dataframe containing each of the imported CSV files using <code>purrr::map_dfr()</code>.
+But knowing that each list element will be a <code>tibble</code> (or <code>data.frame</code>) and that each data frame has the same columns, we can use <span class="pkg">purrr</span>’s typed functions to return a single data frame containing each of the imported CSV files using <code>purrr::map_dfr()</code>.
 The additional <code>_dfr()</code> tells <span class="pkg">purrr</span> to return a data frame (<code>df</code>) that by row-binding each element together (<code>r</code>).</p>
 <pre class="r"><code>csv_files %&gt;% 
   map_dfr(read_csv)</code></pre>
