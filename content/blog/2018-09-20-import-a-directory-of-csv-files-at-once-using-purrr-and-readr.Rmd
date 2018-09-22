@@ -118,6 +118,12 @@ readr::read_csv(csv_files[1])
 
 ### Scale up to all files
 
+<div style="width: 100%; display: flex; align-content: center;">
+  <div style="margin: auto;">
+  <img src="/blog/2018-09-20-import-a-directory-of-csv-files-at-once-using-purrr-and-readr_files/map_dfr-csv_files-read_csv.png" style="max-width: 600px" />
+  </div>
+</div>
+
 To read all of the files in the directory, we *map* `read_csv()` onto the list of files, using `purrr::map()`.
 But knowing that each list element will be a `tibble` (or `data.frame`) and that each data frame has the same columns, we can use [purrr]{.pkg}'s typed functions to return a single data frame containing each of the imported CSV files using `purrr::map_dfr()`.
 The additional `_dfr()` tells [purrr]{.pkg} to return a data frame (`df`) that by row-binding each element together (`r`).

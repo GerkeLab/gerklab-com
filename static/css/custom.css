@@ -266,6 +266,11 @@ h1 > code, h2 > code, h3 > code, h4 > code, h5 > code {
   background: none;
   color: #222;
 }
+
+pre code {
+  overflow-x: auto;
+  white-space: pre;
+}
   
 #components h4 a {
   color: #D3751C; }
