@@ -29,8 +29,8 @@ library(fs)</code></pre>
 </div>
 <div id="example-data" class="section level2">
 <h2>Example Data</h2>
-<p>To make the example more concrete, we’ll use a dataset provided by the Government of Ireland showing the number of e-referrals per hospital department.
-We’ve collected the data for you, which you can <a href="/data/ie-general-referrals-by-hospital.zip">download as a zipfile here</a>, or you can download the original CSV files from <a href="https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year">data.gov.ie</a>.</p>
+<p>To make the example more concrete, we’ll use a <a href="https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year">dataset provided by the Government of Ireland</a> showing the yearly number of e-referrals per hospital department, where the data from each year reside in individual CSV files.</p>
+<p>We’ve collected the data for you, which you can <a href="/data/ie-general-referrals-by-hospital.zip">download as a zipfile here</a>, or you can download the original CSV files from <a href="https://data.gov.ie/dataset/general-referrals-by-hospital-department-and-year">data.gov.ie</a>.</p>
 <p>Once we’ve extracted the zip file or downloaded the CSV files a single folder, we store the location of the unzipped folder in <code>data_dir</code>.</p>
 <pre class="r"><code>data_dir &lt;- &quot;ie-general-referrals-by-hospital&quot;</code></pre>
 <p>We can then list the CSV files using <code>fs::dir_ls()</code>.</p>
@@ -79,7 +79,8 @@ Let’s read one file as an example:</p>
 </div>
 <p>To read all of the files in the directory, we <em>map</em> <code>read_csv()</code> onto the list of files, using <code>purrr::map()</code>.
 But knowing that each list element will be a <code>tibble</code> (or <code>data.frame</code>) and that each data frame has the same columns, we can use <span class="pkg">purrr</span>’s typed functions to return a single data frame containing each of the imported CSV files using <code>purrr::map_dfr()</code>.
-The additional <code>_dfr()</code> tells <span class="pkg">purrr</span> to return a data frame (<code>df</code>) that by row-binding each element together (<code>r</code>).</p>
+The additional <code>_dfr()</code> tells <span class="pkg">purrr</span> to return a data frame (<code>df</code>) by row-binding each element together (<code>r</code>).
+(It’s the same as calling <code>map() %&gt;% bind_rows()</code>.)</p>
 <pre class="r"><code>csv_files %&gt;% 
   map_dfr(read_csv)</code></pre>
 <pre><code>## # A tibble: 12,278 x 6
@@ -132,7 +133,7 @@ Unfortunately, the format of the <code>Month_Year</code> column changed in 2016 
 
 csv_files %&gt;% 
   map_dfr(read_csv) %&gt;%
-  mutate(Month_Year = myd(Month_Year, truncated= 1))</code></pre>
+  mutate(Month_Year = myd(Month_Year, truncated = 1))</code></pre>
 <pre><code>## # A tibble: 12,278 x 6
 ##    Month_Year Hospital_Name   Hospital_ID Hospital_Department ReferralType
 ##    &lt;date&gt;     &lt;chr&gt;                 &lt;int&gt; &lt;chr&gt;               &lt;chr&gt;       
@@ -154,7 +155,7 @@ csv_files %&gt;%
 To do this, we set the <code>.id</code> parameter of <code>map_dfr()</code> to the name of the indicator variable, and the source file name will be included in the final data set.</p>
 <pre class="r"><code>csv_files %&gt;% 
   map_dfr(read_csv, .id = &quot;source&quot;) %&gt;%
-  mutate(Month_Year = myd(Month_Year, truncated= 1))</code></pre>
+  mutate(Month_Year = myd(Month_Year, truncated = 1))</code></pre>
 <pre><code>## # A tibble: 12,278 x 7
 ##    source          Month_Year Hospital_Name  Hospital_ID Hospital_Departm…
 ##    &lt;chr&gt;           &lt;date&gt;     &lt;chr&gt;                &lt;int&gt; &lt;chr&gt;            
@@ -171,4 +172,17 @@ To do this, we set the <code>.id</code> parameter of <code>map_dfr()</code> to t
 ## # ... with 12,268 more rows, and 2 more variables: ReferralType &lt;chr&gt;,
 ## #   TotalReferrals &lt;int&gt;</code></pre>
 </div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>This post provides one small example of how you can combine <span class="pkg"><a href="https://fs.r-lib.org">fs</a></span>, <span class="pkg"><a href="https://purrr.tidyverse.org">purrr</a></span>, and <span class="pkg"><a href="https://readr.tidyverse.org">readr</a></span> to find data files in a directory and read them all together into a single data frame in R, ready for analysis or processing with tools from the <span class="pkg"><a href="https://tidyverse.org">tidyverse</a></span>.</p>
+<p>Here’s the code we used, all in one place.</p>
+<pre class="r"><code>data_dir %&gt;% 
+  dir_ls(regexp = &quot;\\.csv$&quot;) %&gt;% 
+  map_dfr(read_csv, .id = &quot;source&quot;) %&gt;% 
+  mutate(Month_Year = myd(Month_Year, truncated = 1))</code></pre>
+<p>We use <code>dir_ls()</code> to list the files in our data directory, <code>data_dir</code>, and then combine <code>map_dfr()</code> and <code>read_csv()</code> to read in the CSV files we found.
+We use the <code>.id</code> argument of <code>map_dfr()</code> to track the source of each row in the final data frame, which we then begin to process using <code>dplyr</code>.</p>
+<p>Keep in mind, this same pattern can easily be used with other data types, such as SAS or Excel files, with just a few modifications – like replacing the <code>regexp</code> and using <code>haven::read_sas()</code> or <code>readxl::read_xlsx()</code> in place of <code>read_csv</code>.</p>
+<p>In future posts, we’ll also look at other ways we merge a folder of data files besides “stapling” them together row-wise with <code>map_dfr()</code>.</p>
 </div>

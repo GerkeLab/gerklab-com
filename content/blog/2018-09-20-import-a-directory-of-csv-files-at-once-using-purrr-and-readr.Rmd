@@ -77,7 +77,8 @@ We would like to read in all of the CSV files inside the directory and build one
 
 ## Example Data
 
-To make the example more concrete, we'll use a dataset provided by the Government of Ireland showing the number of e-referrals per hospital department.
+To make the example more concrete, we'll use a [dataset provided by the Government of Ireland][data-orig] showing the yearly number of e-referrals per hospital department, where the data from each year reside in individual CSV files.
+
 We've collected the data for you, which you can [download as a zipfile here][data-download], or you can download the original CSV files from [data.gov.ie][data-orig].
 
 ```{r unzip-data-into-tempdir, include=FALSE}
@@ -126,7 +127,8 @@ readr::read_csv(csv_files[1])
 
 To read all of the files in the directory, we *map* `read_csv()` onto the list of files, using `purrr::map()`.
 But knowing that each list element will be a `tibble` (or `data.frame`) and that each data frame has the same columns, we can use [purrr]{.pkg}'s typed functions to return a single data frame containing each of the imported CSV files using `purrr::map_dfr()`.
-The additional `_dfr()` tells [purrr]{.pkg} to return a data frame (`df`) that by row-binding each element together (`r`).
+The additional `_dfr()` tells [purrr]{.pkg} to return a data frame (`df`) by row-binding each element together (`r`).
+(It's the same as calling `map() %>% bind_rows()`.)
 
 ```{r read-all-bare}
 csv_files %>% 
@@ -163,7 +165,7 @@ library(lubridate)
 
 csv_files %>% 
   map_dfr(read_csv) %>%
-  mutate(Month_Year = myd(Month_Year, truncated= 1))
+  mutate(Month_Year = myd(Month_Year, truncated = 1))
 ```
 
 ### Add a source indicator
@@ -174,5 +176,25 @@ To do this, we set the `.id` parameter of `map_dfr()` to the name of the indicat
 ```{r read-all-with-source}
 csv_files %>% 
   map_dfr(read_csv, .id = "source") %>%
-  mutate(Month_Year = myd(Month_Year, truncated= 1))
+  mutate(Month_Year = myd(Month_Year, truncated = 1))
 ```
+
+## Summary
+
+This post provides one small example of how you can combine [[fs]]{.pkg}, [[purrr]]{.pkg}, and [[readr]]{.pkg} to find data files in a directory and read them all together into a single data frame in R, ready for analysis or processing with tools from the [[tidyverse]]{.pkg}.
+
+Here's the code we used, all in one place.
+
+```r
+data_dir %>% 
+  dir_ls(regexp = "\\.csv$") %>% 
+  map_dfr(read_csv, .id = "source") %>% 
+  mutate(Month_Year = myd(Month_Year, truncated = 1))
+```
+
+We use `dir_ls()` to list the files in our data directory, `data_dir`, and then combine `map_dfr()` and `read_csv()` to read in the CSV files we found.
+We use the `.id` argument of `map_dfr()` to track the source of each row in the final data frame, which we then begin to process using `dplyr`.
+
+Keep in mind, this same pattern can easily be used with other data types, such as SAS or Excel files, with just a few modifications -- like replacing the `regexp` and using `haven::read_sas()` or `readxl::read_xlsx()` in place of `read_csv`.
+
+In future posts, we'll also look at other ways we merge a folder of data files besides "stapling" them together row-wise with `map_dfr()`.
