@@ -48,6 +48,8 @@
 <!-- js vendor -->
   <script src="{{ "/js/jquery-2.1.4.min.js" | relURL }}" type="text/javascript">
   </script>
+  <!-- highlightjs -->
+  {{ partial "head_highlightjs.html" . }}
 
   <script type="text/javascript" src="{{ "/js/tocbot.min.js" | relURL }}"></script>
 </head>
@@ -65,6 +67,8 @@
   </script>
   <script src="{{ "/js/master.js" | relURL }}" type="text/javascript">
   </script>
+  
+  {{ partial "footer_highlightjs.html" . }}
 </body>
 
 </html>
