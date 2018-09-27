@@ -21,8 +21,8 @@ slug: baseline-PSA-in-black-men
 published_in: European Urology
 doi: 10.1016/j.eururo.2018.08.032
 links:
-  - name: PubMed (29141848)
-    url: http://www.ncbi.nlm.nih.gov/pubmed/29141848
+  - name: PubMed (30237027)
+    url: http://www.ncbi.nlm.nih.gov/pubmed/30237027
 header_buttons:
   - url: "https://www.europeanurology.com/article/S0302-2838(18)30627-4/"
     text: Journal Article
