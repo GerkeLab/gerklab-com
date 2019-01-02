@@ -1,0 +1,34 @@
+---
+title: "SEERreadr"
+date: 2019-01-02T12:24:17-05:00
+description: "Read SEER fixed with data files"
+author: ~
+weight: 50 # higher = lower on list
+toc: false
+callout: |
+  Read and process SEER cancer incidence and population research data
+  
+header_buttons:
+  - text: "Documentation"
+    url: "https://gerkelab.github.io/SEERreadr/"
+    icon: "fas fa-book"
+    class: "primary"
+  - text: "View Source on GitHub"
+    url: "https://github.com/gerkelab/seerreadr"
+    icon: "fab fa-github"
+    class: "secondary"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- Project Description or README Goes Here -->
+
+```{r echo=FALSE}
+readme <- readLines(url("https://raw.githubusercontent.com/GerkeLab/SEERreadr/master/README.md"))
+
+readme <- readme[-1:-grep("<!-- README start -->", readme, fixed = TRUE)]
+```
+
+`r paste(knitr::knit(text = readme), collapse = "\n")`

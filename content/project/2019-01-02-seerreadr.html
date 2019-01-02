@@ -1,0 +1,121 @@
+---
+title: "SEERreadr"
+date: 2019-01-02T12:24:17-05:00
+description: "Read SEER fixed with data files"
+author: ~
+weight: 50 # higher = lower on list
+toc: false
+callout: |
+  Read and process SEER cancer incidence and population research data
+  
+header_buttons:
+  - text: "Documentation"
+    url: "https://gerkelab.github.io/SEERreadr/"
+    icon: "fas fa-book"
+    class: "primary"
+  - text: "View Source on GitHub"
+    url: "https://github.com/gerkelab/seerreadr"
+    icon: "fab fa-github"
+    class: "secondary"
+---
+
+
+
+<!-- Project Description or README Goes Here -->
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p><strong>SEERreadr</strong> can be installed from GitHub with</p>
+<pre class="r"><code># install.packages(&quot;remotes&quot;)
+remotes::install_github(&quot;gerkelab/SEERreadr&quot;, upgrade = FALSE)</code></pre>
+</div>
+<div id="what-does-this-package-do" class="section level2">
+<h2>What does this package do?</h2>
+<div id="read-seer-data-files" class="section level3">
+<h3>Read SEER Data Files</h3>
+<p>The main workhorse of this package is <code>seer_read_fwf()</code>. This function
+wraps <code>readr::read_fwf()</code> to import the SEER fixed-width ASCII data
+files, using the column names and field width definitions in the <a href="https://seer.cancer.gov/manuals/read.seer.research.nov2017.sas">SEER
+SAS
+script</a>.</p>
+<p>The data files are available from the <a href="https://seer.cancer.gov/data-software/">SEER Data &amp; Software
+page</a>, where users must request
+access prior to downloading. The SAS script is included in the file
+download, or avilable online. The online version is used by
+<code>seer_read_fwf()</code>, but a local version can be specified in the helper
+function <code>seer_read_col_positions(&quot;local_file.sas&quot;)</code>.</p>
+<pre class="r"><code>library(SEERreadr)
+x &lt;- seer_read_fwf(&quot;incidence/yr1973_2015.seer9/MALEGEN.TXT&quot;)</code></pre>
+</div>
+<div id="recode-seer-variables" class="section level3">
+<h3>Recode SEER Variables</h3>
+<p>Two additional functions are provided to help recode the SEER data.
+<code>seer_recode()</code> uses the <code>seer_data_dictionary</code> data provided in this
+package to automatically recode all variables with a one-to-one
+correspondence, for example:</p>
+<pre class="r"><code>seer_data_dictionary$SEX
+#&gt; # A tibble: 2 x 2
+#&gt;   Code  Description
+#&gt; * &lt;chr&gt; &lt;chr&gt;      
+#&gt; 1 1     Male       
+#&gt; 2 2     Female</code></pre>
+<p>The package also includes the function <code>seer_rename_site_specific()</code>
+that can be used to replace the site-specific variables with their
+corresponding labels, formatted appropriately to serve as variable
+names. As an example, CSSSF variables for Breast cancer would be renamed
+according to the following
+table.</p>
+<table>
+<colgroup>
+<col width="18%" />
+<col width="81%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Original Variable</th>
+<th align="left">New Variable Name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CS1SITE</td>
+<td align="left">estrogen_receptor_er_assay_2004</td>
+</tr>
+<tr class="even">
+<td align="left">CS2SITE</td>
+<td align="left">progesterone_receptor_pr_assay_2004</td>
+</tr>
+<tr class="odd">
+<td align="left">CS3SITE</td>
+<td align="left">number_of_positive_ipsilateral_level_i_ii_axillary_lymph_nodes_2004</td>
+</tr>
+<tr class="even">
+<td align="left">CS4SITE</td>
+<td align="left">immunohistochemistry_ihc_of_regional_lymph_nodes_2004</td>
+</tr>
+<tr class="odd">
+<td align="left">CS5SITE</td>
+<td align="left">molecular_mol_studies_of_regional_lymph_nodes_2004</td>
+</tr>
+<tr class="even">
+<td align="left">CS6SITE</td>
+<td align="left">size_of_tumor_invasive_component_2004</td>
+</tr>
+<tr class="odd">
+<td align="left">CS7SITE</td>
+<td align="left">nottingham_or_bloom_richardson_br_score_grade_2010</td>
+</tr>
+<tr class="even">
+<td align="left">CS15SITE</td>
+<td align="left">her_2_summary_result_of_testing_2010</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="thanks" class="section level2">
+<h2>Thanks</h2>
+<p>Thank you to <a href="https://github.com/vincentmajor">Vincent Major</a> for making
+available the scripts in
+<a href="https://github.com/vincentmajor/SEER_read_fwf">SEER_read_fwf</a>, which
+provided a foundation for this package.</p>
+</div>
