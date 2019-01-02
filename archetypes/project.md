@@ -10,8 +10,15 @@ toc: false
 callout: |
   **ProjectName** is a thing that does things well.
   
-github_url: "#"
-app_url: "#"
+header_buttons:
+  - text: "Run Demo App"
+    url: "#"
+    icon: "fas fa-rocket"
+    class: "primary"
+  - text: "View Source on GitHub"
+    url: "#"
+    icon: "fab fa-github"
+    class: "secondary"
 ---
 
 ```{r setup, include=FALSE}
