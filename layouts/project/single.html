@@ -9,12 +9,13 @@
            {{ .Params.callout | markdownify }}
       </p>
       {{ end }}
-      {{ if  or (isset .Params "app_url") (isset .Params "github_url") }}
+      {{ if isset .Params "header_buttons" }}
       <p>
-        {{ if .Params.app_url }}
-        <a href="{{.Params.app_url}}"><button class="button primary"><i class="fas fa-rocket"></i>  Run Demo App</button></a>
-        {{ end }}{{ if .Params.github_url }}
-        <a href="{{.Params.github_url}}"><button class="button secondary"><i class="fab fa-github"></i>  View Source on GitHub</button></a>
+        {{ range .Params.header_buttons }}
+        <a href="{{.url}}">
+          <button class="button {{ .class }}">
+            {{ if .icon }}<i class="{{ .icon }}"></i> {{ end }}{{ .text }}</button>
+        </a>
         {{ end }}
       </p>
       {{ end }}
