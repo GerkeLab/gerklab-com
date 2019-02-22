@@ -86,6 +86,8 @@ ga_auth()
 ```
 
 ```{r ga-analytics, eval=FALSE}
+metrics_date_range <- c("2019-01-04", paste(Sys.Date()))
+
 account_list <- ga_account_list()
 
 ga_data <- list()
@@ -110,7 +112,7 @@ ga_data$ga_metrics %>%
 
 ga_data$screen_sizes <- google_analytics(
   rsconf_viewId,
-  date_range = c("2019-01-14", "2019-01-23"), 
+  date_range = metrics_date_range, 
   metrics = c("sessions", "timeOnPage", "screenViews"),
   dimensions = c("screenResolution", 
                  "browser", 
@@ -123,7 +125,7 @@ ga_data$screen_sizes <- google_analytics(
 
 ga_data$browser_os <- google_analytics(
   rsconf_viewId,
-  date_range = c("2019-01-14", "2019-01-23"), 
+  date_range = metrics_date_range, 
   metrics = c("sessions", "timeOnPage", "screenViews"),
   dimensions = c("browser", 
                  "browserVersion",
@@ -134,7 +136,7 @@ ga_data$browser_os <- google_analytics(
 
 ga_data$op_sys <- google_analytics(
   rsconf_viewId,
-  date_range = c("2019-01-14", "2019-01-23"), 
+  date_range = metrics_date_range, 
   metrics = c("sessions", "timeOnPage", "screenViews"),
   dimensions = c("operatingSystem", 
                  "operatingSystemVersion")
@@ -143,7 +145,7 @@ ga_data$op_sys <- google_analytics(
 
 ga_data$mobile <- google_analytics(
   rsconf_viewId,
-  date_range = c("2019-01-14", "2019-01-23"),
+  date_range = metrics_date_range,
   metrics = c("sessions", "timeOnPage", "screenViews"),
   dimensions = ga_data$ga_metrics %>% 
     filter(str_detect(uiName, "Mobile")) %>% 
@@ -164,6 +166,20 @@ ga_data <- readRDS(here::here("data-cache", "ga_data.rds"))
 
 *note: probably want to scale by percentage of traffic*
 
+```{r popular-os-browsers}
+os_popular <- 
+  ga_data$screen_sizes %>% 
+  count(operatingSystem) %>% 
+  filter(n >= 5) %>% 
+  pull(operatingSystem)
+
+browser_popular <- 
+  ga_data$screen_sizes %>% 
+  count(operatingSystem, browser) %>%
+  filter(n > 2) %>% 
+  pull(browser)
+```
+
 ```{r browser-plot, echo = FALSE, fig.height=8}
 browsers <- ga_data$browser_os %>%
   group_by(browser, operatingSystem) %>%
@@ -175,39 +191,45 @@ browsers <- ga_data$browser_os %>%
 browser_colors <- setNames(ggsci::pal_jama()(length(browsers)), browsers)
 
 ga_data$browser_os %>%
+  filter(operatingSystem %in% os_popular) %>% 
   group_by(browser, operatingSystem) %>%
   summarize(sessions = sum(sessions)) %>%
   filter(sessions > 1) %>% 
-  # group_by(operatingSystem) %>%
   ungroup() %>% 
   mutate(
-    operatingSystem = fct_reorder(operatingSystem, sessions, max, .desc = TRUE)
+    operatingSystem = fct_reorder(operatingSystem, sessions, max, .desc = TRUE),
+    sessions = sessions / sum(sessions)
   ) %>% 
   split(.$operatingSystem) %>% 
   imap(~ {
     mutate(.x, 
            browser = fct_reorder(browser, sessions, max),
-           text_placement = ifelse(sessions < 30, sessions, 0),
-           text_hjust = ifelse(sessions < 30, -0.1, 1.05)
+           text_placement = ifelse(sessions < 0.05, sessions, 0),
+           text_hjust = ifelse(sessions < 0.05, -0.1, 1.05)
     ) %>% 
     ggplot() +
       aes(operatingSystem, sessions, fill = browser) +
       geom_col(position = "dodge") + 
       geom_text(
         aes(label = browser, color = browser, y = text_placement, hjust = text_hjust),
-        vjust = 0.55,
-        position = position_dodge(1)) +
+        vjust = 0.5,
+        position = position_dodge(1)
+      ) +
       scale_fill_manual(values = browser_colors) +
       scale_color_manual(values = browser_colors) +
-      scale_y_continuous(expand = expand_scale(c(0.1, 0), 0)) +
-      # guides(fill = guide_legend(reverse = TRUE)) +
+      scale_y_continuous(labels = scales::percent, expand = expand_scale(mult = c(0.1, 0), add = 0)) +
+      scale_x_discrete(expand = expand_scale(0, 0)) +
       guides(fill = FALSE, color = FALSE) +
-      labs(y = "Sessions", x = NULL) +
-      ggtitle(.y) +
+      coord_flip(clip = "off") +
+      labs(
+        y = if (.y == "Linux") "Percent of Overall Traffic",
+        x = NULL,
+         title = .y
+      ) +
       theme(axis.text.y = element_blank(),
-            axis.title.x = element_text(color = "grey60"),
-            plot.title = element_text(hjust = 0.5)) +
-      coord_flip()
+            axis.title.x = element_text(color = "grey40"),
+            plot.title = element_text(hjust = 0.5)
+      )
   }) %>% 
   cowplot::plot_grid(plotlist = ., align = "hv", axis = "l", ncol = 1)
 ```
@@ -220,9 +242,12 @@ screen_res_maj <- setNames(screen_res, screen_res)
 screen_res <- sort(c(-screen_res[-1], screen_res))
 screen_res <- setNames(screen_res, abs(screen_res))
 # screen_res_maj <- screen_res[seq(2, length(screen_res), 2)]
-  
+
 ga_data$screen_sizes %>% 
-  filter(operatingSystem != "Chrome OS") %>% 
+  filter(
+    operatingSystem %in% os_popular,
+    browser %in% browser_popular
+  ) %>% 
   separate(screenResolution, c("screen_width", "screen_height"), sep = "x") %>% 
   mutate_at(vars(starts_with("screen_")), as.integer) %>% 
   mutate(mobile = c("Desktop", "Mobile")[str_detect(operatingSystem, "Android|iOS") + 1]) %>% 
@@ -259,8 +284,10 @@ ga_data$screen_sizes %>%
       labs(alpha = "Sessions", x = NULL, y = NULL) +
       theme(
         panel.grid = element_blank(),
+        panel.border = element_rect(color = "grey60", fill = NA),
         plot.title = element_text(hjust = 0.5, family = "Fira Sans"),
         axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0.5),
+        strip.text.y = element_text(angle = 180, face = "bold"),
         strip.placement = "outside"
       )
   }) %>% 

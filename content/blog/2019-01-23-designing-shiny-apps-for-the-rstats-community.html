@@ -31,7 +31,7 @@ Enabled google analytics because wanted to see if/when/how the app was being use
 <li>OAuth client</li>
 <li>Add your website to login page</li>
 <li>Copy <code>client ID</code> and <code>client secret</code> into <code>~/.Renviron</code> as <code>GOOGLE_APIS_CONSUMER_ID</code> and <code>GOOGLE_APIS_CONSUMER_SECRET</code></li>
-<li>Add <code>GOOGLE_APIS_USER=&quot;my@gmail.com&quot;</code></li>
+<li>Add <code>GOOGLE_APIS_USER="my@gmail.com"</code></li>
 </ul>
 <pre class="r"><code># ga_creds &lt;- jsonlite::fromJSON(&quot;~/Downloads/google-analytics-0b8141ace51f.json&quot;)
 # ga_creds_text &lt;- glue::glue(
@@ -63,7 +63,9 @@ theme_set(
 )</code></pre>
 <pre class="r"><code>library(googleAnalyticsR)
 ga_auth()</code></pre>
-<pre class="r"><code>account_list &lt;- ga_account_list()
+<pre class="r"><code>metrics_date_range &lt;- c(&quot;2019-01-04&quot;, paste(Sys.Date()))
+
+account_list &lt;- ga_account_list()
 
 ga_data &lt;- list()
 
@@ -87,7 +89,7 @@ ga_data$ga_metrics %&gt;%
 
 ga_data$screen_sizes &lt;- google_analytics(
   rsconf_viewId,
-  date_range = c(&quot;2019-01-14&quot;, &quot;2019-01-23&quot;), 
+  date_range = metrics_date_range, 
   metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
   dimensions = c(&quot;screenResolution&quot;, 
                  &quot;browser&quot;, 
@@ -100,7 +102,7 @@ ga_data$screen_sizes &lt;- google_analytics(
 
 ga_data$browser_os &lt;- google_analytics(
   rsconf_viewId,
-  date_range = c(&quot;2019-01-14&quot;, &quot;2019-01-23&quot;), 
+  date_range = metrics_date_range, 
   metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
   dimensions = c(&quot;browser&quot;, 
                  &quot;browserVersion&quot;,
@@ -111,7 +113,7 @@ ga_data$browser_os &lt;- google_analytics(
 
 ga_data$op_sys &lt;- google_analytics(
   rsconf_viewId,
-  date_range = c(&quot;2019-01-14&quot;, &quot;2019-01-23&quot;), 
+  date_range = metrics_date_range, 
   metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
   dimensions = c(&quot;operatingSystem&quot;, 
                  &quot;operatingSystemVersion&quot;)
@@ -120,7 +122,7 @@ ga_data$op_sys &lt;- google_analytics(
 
 ga_data$mobile &lt;- google_analytics(
   rsconf_viewId,
-  date_range = c(&quot;2019-01-14&quot;, &quot;2019-01-23&quot;),
+  date_range = metrics_date_range,
   metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
   dimensions = ga_data$ga_metrics %&gt;% 
     filter(str_detect(uiName, &quot;Mobile&quot;)) %&gt;% 
@@ -131,6 +133,17 @@ ga_data$mobile &lt;- google_analytics(
 <div id="common-browsers-by-operating-system" class="section level2">
 <h2>Common Browsers by Operating System</h2>
 <p><em>note: probably want to scale by percentage of traffic</em></p>
+<pre class="r"><code>os_popular &lt;- 
+  ga_data$screen_sizes %&gt;% 
+  count(operatingSystem) %&gt;% 
+  filter(n &gt;= 5) %&gt;% 
+  pull(operatingSystem)
+
+browser_popular &lt;- 
+  ga_data$screen_sizes %&gt;% 
+  count(operatingSystem, browser) %&gt;%
+  filter(n &gt; 2) %&gt;% 
+  pull(browser)</code></pre>
 <p><img src="/blog/2019-01-23-designing-shiny-apps-for-the-rstats-community_files/figure-html/browser-plot-1.png" width="672" /></p>
 </div>
 <div id="screen-resolution" class="section level2">
