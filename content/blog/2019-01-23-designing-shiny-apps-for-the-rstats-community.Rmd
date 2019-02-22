@@ -164,9 +164,7 @@ ga_data <- readRDS(here::here("data-cache", "ga_data.rds"))
 
 ## Common Browsers by Operating System
 
-*note: probably want to scale by percentage of traffic*
-
-```{r popular-os-browsers}
+```{r popular-os-browsers, echo = FALSE}
 os_popular <- 
   ga_data$screen_sizes %>% 
   count(operatingSystem) %>% 
@@ -217,7 +215,7 @@ ga_data$browser_os %>%
       ) +
       scale_fill_manual(values = browser_colors) +
       scale_color_manual(values = browser_colors) +
-      scale_y_continuous(labels = scales::percent, expand = expand_scale(mult = c(0.1, 0), add = 0)) +
+      scale_y_continuous(labels = scales::percent_format(5), expand = expand_scale(mult = c(0.1, 0.05), add = 0)) +
       scale_x_discrete(expand = expand_scale(0, 0)) +
       guides(fill = FALSE, color = FALSE) +
       coord_flip(clip = "off") +

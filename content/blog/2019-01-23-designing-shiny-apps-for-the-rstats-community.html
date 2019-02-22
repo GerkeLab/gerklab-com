@@ -132,18 +132,6 @@ ga_data$mobile &lt;- google_analytics(
 </div>
 <div id="common-browsers-by-operating-system" class="section level2">
 <h2>Common Browsers by Operating System</h2>
-<p><em>note: probably want to scale by percentage of traffic</em></p>
-<pre class="r"><code>os_popular &lt;- 
-  ga_data$screen_sizes %&gt;% 
-  count(operatingSystem) %&gt;% 
-  filter(n &gt;= 5) %&gt;% 
-  pull(operatingSystem)
-
-browser_popular &lt;- 
-  ga_data$screen_sizes %&gt;% 
-  count(operatingSystem, browser) %&gt;%
-  filter(n &gt; 2) %&gt;% 
-  pull(browser)</code></pre>
 <p><img src="/blog/2019-01-23-designing-shiny-apps-for-the-rstats-community_files/figure-html/browser-plot-1.png" width="672" /></p>
 </div>
 <div id="screen-resolution" class="section level2">
