@@ -1,0 +1,177 @@
+---
+title: Encrypting and Sharing Data Containing PHI
+author: 
+  - Garrick Aden-Buie
+  - Travis Gerke
+date: '2019-02-22'
+slug: encrypting-and-share-phi
+categories:
+  - R
+tags:
+  - R
+description: "Using the encryptr package to securely share data with collaborators"
+weight: 20
+hero_bg: "/img/hero/corey-agopian-106075-unsplash.jpg"
+hero_credit: "[Corey Agopian](https://unsplash.com/photos/-yhpJ0BwLcU?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on Unsplash"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, warning = FALSE, message = FALSE
+)
+# Run this post in a temp directory
+knitr::opts_knit$set(root.dir = tempdir())
+
+if (interactive()) setwd(tempdir())
+```
+
+<!-- Links -->
+
+#### Links (will remove)
+
+[encryptr]: https://github.com/SurgicalInformatics/encryptr
+[sodium]:   https://cran.r-project.org/web/packages/sodium/vignettes/intro.html
+[cyphr]:    https://github.com/ropensci/cyphr
+[r-secret]: https://github.com/gaborcsardi/secret
+
+- [encryptr]
+- [sodium]
+- [cyphr]
+- [r-secret]
+
+## Skeleton of Example
+
+```{r library-encryptr}
+# remotes::install_github("SurgicalInformatics/encryptr")
+library(encryptr)
+```
+
+```{r library-general}
+library(tidyverse)
+```
+
+Three people who need to share data:
+
+* **Org**: The **Owner** or organization sharing the data
+
+* **Aiyana**: A fully-cleared collaborator
+
+* **Zane**: A collaborator who cannot access PHI
+
+To set up, we create a public/private key pair for each person.
+
+```{r create-keypairs}
+# I have to do this manually because `encryptr` doesn't expose the
+# password argument in openssl::write_pem()
+
+people <- c("org", "aiyana", "zane")
+for (person in people) {
+  # straight out of ?openssl::rsa_keygen()
+  key <- openssl::rsa_keygen()
+  pubkey <- as.list(key)$pubkey
+  openssl::write_pem(key, paste0(person, "_private_key"))
+  openssl::write_pem(pubkey, paste0(person, "_public_key"))
+}
+
+dir()
+```
+
+### The owner has the data and encrypts it
+
+The owner has some data about breast cancer patients.
+
+```{r data-create, include=FALSE}
+patient_data <- 
+tibble::tribble(
+  ~medical_record_number,                      ~primary_site,     ~date_dx,
+                  984584,                "C503 (BREAST LIQ)", "2009-02-01",
+                  534924,                "C509 (BREAST NOS)", "2012-04-13",
+                  624219,                "C509 (BREAST NOS)", "2010-04-25",
+                  112743,                "C503 (BREAST LIQ)", "2014-12-03",
+                  261730,           "C383 (MEDIASTINUM NOS)", "2014-08-27",
+                  194777, "C508 (BREAST OVERLAPPING LESION)", "2013-03-18",
+                  446950,               "C541 (ENDOMETRIUM)", "2016-03-28",
+                  751595,                "C504 (BREAST UOQ)", "2012-08-18",
+                  385615,                "C504 (BREAST UOQ)", "2011-01-08",
+                  761953,                "C504 (BREAST UOQ)", "2012-08-08"
+  )
+```
+
+```{r data-view}
+patient_data
+```
+
+They need to hide the Medical Record Number and Date of Diagnosis.
+
+```{r data-encrypted}
+patient_encrypted <- 
+  patient_data %>% 
+  encrypt(
+    medical_record_number,
+    date_dx,
+    public_key_path = "org_public_key"
+  )
+
+patient_encrypted
+```
+
+Can Aiyana or Zane see the data?
+
+```{r data-decrypt-try, error=TRUE}
+patient_encrypted %>% 
+  decrypt(
+    medical_record_number,
+    date_dx,
+    private_key_path = "aiyana_private_key"
+  )
+
+patient_encrypted %>% 
+  decrypt(
+    medical_record_number,
+    date_dx,
+    private_key_path = "zane_private_key"
+  )
+```
+
+Nope.
+But the Org can!
+
+```{r data-decrypt-org}
+patient_encrypted %>% 
+  decrypt(
+    medical_record_number,
+    date_dx,
+    private_key_path = "org_private_key"
+  )
+```
+
+### Aiyana wants the data
+
+We encrypt for Aiyana to receive the data.
+
+```{r data-encrypt-for-a}
+patient_encrypt_A <- 
+  patient_data %>% 
+  encrypt(
+    medical_record_number, date_dx,
+    public_key_path = "aiyana_public_key"
+  )
+
+patient_encrypt_A
+```
+
+```{r data-decrypt-try-a, error=TRUE}
+patient_encrypt_A %>% 
+  decrypt(
+    medical_record_number,
+    date_dx,
+    private_key_path = "aiyana_private_key"
+  )
+
+patient_encrypt_A %>% 
+  decrypt(
+    medical_record_number,
+    date_dx,
+    private_key_path = "zane_private_key"
+  )
+```
