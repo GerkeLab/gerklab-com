@@ -207,7 +207,7 @@ a:hover {
   color: #D3751C;
 }
 
-#post-box a:hover {
+#post-box :not(.pkg) > a:hover {
   background: #e7e7f3;
   color: #161688;
   padding: 3px;
