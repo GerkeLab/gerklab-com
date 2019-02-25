@@ -17,7 +17,9 @@ hero_credit: "[Corey Agopian](https://unsplash.com/photos/-yhpJ0BwLcU?utm_source
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, warning = FALSE, message = FALSE
+  echo = TRUE, warning = FALSE, message = FALSE,
+  class.source = "code-source",
+  class.output = "code-output"
 )
 # Run this post in a temp directory
 knitr::opts_knit$set(root.dir = tempdir())

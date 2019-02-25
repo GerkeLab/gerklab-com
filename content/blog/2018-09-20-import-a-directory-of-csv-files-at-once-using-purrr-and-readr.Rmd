@@ -26,7 +26,8 @@ data_zip_file <- here::here("static/data/ie-general-referrals-by-hospital.zip")
 
 # Warning! Everything else after this happens in the tempdir
 knitr::opts_knit$set(root.dir = tempdir())
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      class.source = "code-source", class.output = "code-output")
 ```
 
 ```{r include=FALSE}

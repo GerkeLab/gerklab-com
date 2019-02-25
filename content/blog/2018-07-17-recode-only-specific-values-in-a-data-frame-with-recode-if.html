@@ -26,8 +26,8 @@ In short, these imaginary data capture patients’ hospital visits in which they
 Some patients are diagnosed with multiple cancers and the <code>sequence</code> variable records in what order cancers were diagnosed.
 Problems with the <code>sequence</code> values can occur from errors at the time of manual data entry or through historical changes in coding standards for this variable.
 Note that, while the data entries are fictitious, the problem is based on the real experiences of our group and others who use cancer registry systems.</p>
-<pre class="r"><code>example_data</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="r code-source"><code>example_data</code></pre>
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   0       
@@ -53,10 +53,10 @@ Note that, while the data entries are fictitious, the problem is based on the re
 <div id="standard-recode" class="section level2">
 <h2>Standard <code>recode()</code></h2>
 <p>The first issue can be fixed with a standard use of <code>recode()</code> from dplyr.</p>
-<pre class="r"><code>example_data &lt;- example_data %&gt;% 
+<pre class="r code-source"><code>example_data &lt;- example_data %&gt;% 
   mutate(sequence = recode(sequence, &quot;99&quot; = &quot;1&quot;))
 example_data</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   0       
@@ -77,17 +77,17 @@ In the above example, <code>recode()</code> works by taking any value of <code>s
 <div id="recode_if" class="section level2">
 <h2><code>recode_if()</code></h2>
 <p>For the second two issues, we need to condition the value updating on a second column.
-By this, we mean that we can’t use the value of <code>sequence</code> directly to choose which value to update – for example, we need to change the value of <code>sequence</code> when it equals <code>1</code>, but only for <code>id == 2702 &amp; cancerSite == &quot;Brain&quot;</code>.</p>
+By this, we mean that we can’t use the value of <code>sequence</code> directly to choose which value to update – for example, we need to change the value of <code>sequence</code> when it equals <code>1</code>, but only for <code>id == 2702 &amp; cancerSite == "Brain"</code>.</p>
 <p>To do this we introduce a simple function called <code>recode_if()</code> that provides a wrapper around <code>if_else()</code> and <code>recode()</code>.</p>
-<pre class="r"><code>recode_if &lt;- function(x, condition, ...) {
+<pre class="r code-source"><code>recode_if &lt;- function(x, condition, ...) {
   if_else(condition, recode(x, ...), x)
 }</code></pre>
-<p>Then we apply this function to change the value of <code>sequence</code> to <code>3</code> for the person with <code>id == 2702 &amp; cancerSite == &quot;Brain&quot;</code>.</p>
-<pre class="r"><code>example_data &lt;- example_data %&gt;%
+<p>Then we apply this function to change the value of <code>sequence</code> to <code>3</code> for the person with <code>id == 2702 &amp; cancerSite == "Brain"</code>.</p>
+<pre class="r code-source"><code>example_data &lt;- example_data %&gt;%
   mutate(sequence = recode_if(sequence, id == 2702 &amp; cancerSite == &quot;Brain&quot;, &quot;1&quot; = &quot;3&quot;))
 
 example_data</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   0       
@@ -103,11 +103,11 @@ example_data</code></pre>
 ## 11  2702 Abigale Senger-Schimmel Brain      3       
 ## 12  3622 Regis Stracke-Bartell   &lt;NA&gt;       0</code></pre>
 <p>And finally, we correct the historical uses of <code>0</code> and <code>60</code> in the <code>sequence</code> variable using <code>recode_if()</code>.</p>
-<pre class="r"><code>example_data &lt;- example_data %&gt;%
+<pre class="r code-source"><code>example_data &lt;- example_data %&gt;%
   mutate(sequence = recode_if(sequence, !is.na(cancerSite), &quot;0&quot; = &quot;1&quot;, &quot;60&quot; = &quot;2&quot;))
 
 example_data</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   1       
@@ -129,21 +129,21 @@ example_data</code></pre>
 <code>recode()</code> and <code>recode_if()</code> are two methods that are useful, but there are others.
 In our opinion, the explict mapping of old values to new values in <code>recode()</code> and <code>recode_if()</code> makes the code clearer and easier to understand from a distance.</p>
 <p>Here’s the full method using <code>recode()</code> and <code>recode_if()</code>.</p>
-<pre class="r"><code>example_data_orig %&gt;% 
+<pre class="r code-source"><code>example_data_orig %&gt;% 
   mutate(
     sequence = recode(sequence, &quot;99&quot; = &quot;1&quot;),
     sequence = recode_if(sequence, id == 2702 &amp; cancerSite == &quot;Brain&quot;, &quot;1&quot; = &quot;3&quot;),
     sequence = recode_if(sequence, !is.na(cancerSite), &quot;0&quot; = &quot;1&quot;, &quot;60&quot; = &quot;2&quot;)
   )</code></pre>
 <p>Another option is to use <code>if_else()</code> directly</p>
-<pre class="r"><code>example_data_orig %&gt;%
+<pre class="r code-source"><code>example_data_orig %&gt;%
   mutate(
     sequence = if_else(sequence == &quot;99&quot;, &quot;1&quot;, sequence),
     sequence = if_else(id == 2702 &amp; cancerSite == &quot;Brain&quot;, &quot;3&quot;, sequence),
     sequence = if_else(!is.na(cancerSite) &amp; sequence == &quot;0&quot;, &quot;1&quot;, sequence),
     sequence = if_else(!is.na(cancerSite) &amp; sequence == &quot;60&quot;, &quot;2&quot;, sequence)
   )</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   1       
@@ -171,7 +171,7 @@ In our opinion, the explict mapping of old values to new values in <code>recode(
                   sequence)
   )</code></pre>
 <p>A third option is to use <code>case_when()</code>, as in</p>
-<pre class="r"><code>example_data_orig %&gt;%
+<pre class="r code-source"><code>example_data_orig %&gt;%
   mutate(
     sequence = case_when(
       sequence == &quot;99&quot; ~ &quot;1&quot;,
@@ -181,7 +181,7 @@ In our opinion, the explict mapping of old values to new values in <code>recode(
       TRUE ~ sequence
     )
   )</code></pre>
-<pre><code>## # A tibble: 12 x 4
+<pre class="code-output"><code>## # A tibble: 12 x 4
 ##       id name                    cancerSite sequence
 ##    &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;   
 ##  1  3839 Bernie O&#39;Reilly         Prostate   1       

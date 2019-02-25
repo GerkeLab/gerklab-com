@@ -29,9 +29,9 @@ hero_credit: "[Corey Agopian](https://unsplash.com/photos/-yhpJ0BwLcU?utm_source
 </div>
 <div id="skeleton-of-example" class="section level2">
 <h2>Skeleton of Example</h2>
-<pre class="r"><code># remotes::install_github(&quot;SurgicalInformatics/encryptr&quot;)
+<pre class="r code-source"><code># remotes::install_github(&quot;SurgicalInformatics/encryptr&quot;)
 library(encryptr)</code></pre>
-<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r code-source"><code>library(tidyverse)</code></pre>
 <p>Three people who need to share data:</p>
 <ul>
 <li><p><strong>Org</strong>: The <strong>Owner</strong> or organization sharing the data</p></li>
@@ -39,7 +39,7 @@ library(encryptr)</code></pre>
 <li><p><strong>Zane</strong>: A collaborator who cannot access PHI</p></li>
 </ul>
 <p>To set up, we create a public/private key pair for each person.</p>
-<pre class="r"><code># I have to do this manually because `encryptr` doesn&#39;t expose the
+<pre class="r code-source"><code># I have to do this manually because `encryptr` doesn&#39;t expose the
 # password argument in openssl::write_pem()
 
 people &lt;- c(&quot;org&quot;, &quot;aiyana&quot;, &quot;zane&quot;)
@@ -52,13 +52,13 @@ for (person in people) {
 }
 
 dir()</code></pre>
-<pre><code>## [1] &quot;aiyana_private_key&quot; &quot;aiyana_public_key&quot;  &quot;org_private_key&quot;   
+<pre class="code-output"><code>## [1] &quot;aiyana_private_key&quot; &quot;aiyana_public_key&quot;  &quot;org_private_key&quot;   
 ## [4] &quot;org_public_key&quot;     &quot;zane_private_key&quot;   &quot;zane_public_key&quot;</code></pre>
 <div id="the-owner-has-the-data-and-encrypts-it" class="section level3">
 <h3>The owner has the data and encrypts it</h3>
 <p>The owner has some data about breast cancer patients.</p>
-<pre class="r"><code>patient_data</code></pre>
-<pre><code>## # A tibble: 10 x 3
+<pre class="r code-source"><code>patient_data</code></pre>
+<pre class="code-output"><code>## # A tibble: 10 x 3
 ##    medical_record_number primary_site                     date_dx   
 ##                    &lt;dbl&gt; &lt;chr&gt;                            &lt;chr&gt;     
 ##  1                984584 C503 (BREAST LIQ)                2009-02-01
@@ -72,7 +72,7 @@ dir()</code></pre>
 ##  9                385615 C504 (BREAST UOQ)                2011-01-08
 ## 10                761953 C504 (BREAST UOQ)                2012-08-08</code></pre>
 <p>They need to hide the Medical Record Number and Date of Diagnosis.</p>
-<pre class="r"><code>patient_encrypted &lt;- 
+<pre class="r code-source"><code>patient_encrypted &lt;- 
   patient_data %&gt;% 
   encrypt(
     medical_record_number,
@@ -81,28 +81,28 @@ dir()</code></pre>
   )
 
 patient_encrypted</code></pre>
-<pre><code>## # A tibble: 10 x 3
+<pre class="code-output"><code>## # A tibble: 10 x 3
 ##    medical_record_number          primary_site      date_dx                
 ##    &lt;chr&gt;                          &lt;chr&gt;             &lt;chr&gt;                  
-##  1 95df20a6f72c8e0a55ae16606adc6… C503 (BREAST LIQ) 77787b0f746d2748ba1e36…
-##  2 33d94b1b779cde379be650b305074… C509 (BREAST NOS) 37e86708aca14ccc8d994a…
-##  3 4cb6d077861641cfe23dff7fdb04e… C509 (BREAST NOS) 0d51efe7c4890abae60c85…
-##  4 94d00211301b72b75a8f004f48d24… C503 (BREAST LIQ) aad7803af2874d1916038d…
-##  5 01ac6c624323711a5b071fe387dd7… C383 (MEDIASTINU… 7725ecda48692c8abde926…
-##  6 92e4326425df668fbab426f93609b… C508 (BREAST OVE… 989cfc43d8247feb1d815a…
-##  7 2d774a42e53ca86891a363a6b4abe… C541 (ENDOMETRIU… 3267726ae722cfaf3c0acf…
-##  8 8762d513e129b6abc1fb00803249e… C504 (BREAST UOQ) 10ddbc46bf12a2cd53c187…
-##  9 14f808a172cd5588af92b728b75bf… C504 (BREAST UOQ) 17161a561cfcafe1fcdeaa…
-## 10 14890913e8a0ac5b724957013db75… C504 (BREAST UOQ) 13e8c0d70f06cedfebb4f4…</code></pre>
+##  1 4fa457943c707c89a06688a36eb3c… C503 (BREAST LIQ) 552fe32399c4e186f944d2…
+##  2 3466a90db2d7c007c5e239cc5765e… C509 (BREAST NOS) 7970b280743cdb2a499c86…
+##  3 6d454783645899cb3afbd7bc5e78e… C509 (BREAST NOS) c09fd9686964d8fdf161c4…
+##  4 729f8382fb111ee7033ea586a7bad… C503 (BREAST LIQ) b600d66f5b093ef4ad543a…
+##  5 4c5b8b843bfe312ab7ea8bea1f701… C383 (MEDIASTINU… 9d88fa81e090ad71c2b196…
+##  6 20d4968ccb0ece2da547c1495d8f3… C508 (BREAST OVE… c0b257a14a1718f76d1652…
+##  7 8aebe833bfb37946c39d0320d4939… C541 (ENDOMETRIU… 53500d98f54d1465c32438…
+##  8 a30a4e74f000d6b16125ad1ee7930… C504 (BREAST UOQ) 56ccf2479e5f739f687937…
+##  9 7cf2516d8e09ca496b85fa08d7d36… C504 (BREAST UOQ) beab4358d03b9f312aaf44…
+## 10 3bc3fafbc0a75a6fc40d531dd1593… C504 (BREAST UOQ) 168f823e2ea0fa98e8de73…</code></pre>
 <p>Can Aiyana or Zane see the data?</p>
-<pre class="r"><code>patient_encrypted %&gt;% 
+<pre class="r code-source"><code>patient_encrypted %&gt;% 
   decrypt(
     medical_record_number,
     date_dx,
     private_key_path = &quot;aiyana_private_key&quot;
   )</code></pre>
 <pre><code>## Error: OpenSSL error in RSA_padding_check_PKCS1_type_2: pkcs decoding error</code></pre>
-<pre class="r"><code>patient_encrypted %&gt;% 
+<pre class="r code-source"><code>patient_encrypted %&gt;% 
   decrypt(
     medical_record_number,
     date_dx,
@@ -111,13 +111,13 @@ patient_encrypted</code></pre>
 <pre><code>## Error: OpenSSL error in RSA_padding_check_PKCS1_type_2: pkcs decoding error</code></pre>
 <p>Nope.
 But the Org can!</p>
-<pre class="r"><code>patient_encrypted %&gt;% 
+<pre class="r code-source"><code>patient_encrypted %&gt;% 
   decrypt(
     medical_record_number,
     date_dx,
     private_key_path = &quot;org_private_key&quot;
   )</code></pre>
-<pre><code>## # A tibble: 10 x 3
+<pre class="code-output"><code>## # A tibble: 10 x 3
 ##    medical_record_number primary_site                     date_dx   
 ##    &lt;chr&gt;                 &lt;chr&gt;                            &lt;chr&gt;     
 ##  1 984584                C503 (BREAST LIQ)                2009-02-01
@@ -134,7 +134,7 @@ But the Org can!</p>
 <div id="aiyana-wants-the-data" class="section level3">
 <h3>Aiyana wants the data</h3>
 <p>We encrypt for Aiyana to receive the data.</p>
-<pre class="r"><code>patient_encrypt_A &lt;- 
+<pre class="r code-source"><code>patient_encrypt_A &lt;- 
   patient_data %&gt;% 
   encrypt(
     medical_record_number, date_dx,
@@ -142,26 +142,26 @@ But the Org can!</p>
   )
 
 patient_encrypt_A</code></pre>
-<pre><code>## # A tibble: 10 x 3
+<pre class="code-output"><code>## # A tibble: 10 x 3
 ##    medical_record_number          primary_site      date_dx                
 ##    &lt;chr&gt;                          &lt;chr&gt;             &lt;chr&gt;                  
-##  1 59ec46463b7a54f439b5d68334c29… C503 (BREAST LIQ) 1bbc5e0240c5464f7b0e54…
-##  2 136bdcff54dbe8719143fdf030c33… C509 (BREAST NOS) 15e83000b647b1bbfd64fe…
-##  3 30fe700291a5d81423fed40196ac8… C509 (BREAST NOS) 160fcab4daa806c22379ed…
-##  4 2cab285ad511bc8fe6002c824fba9… C503 (BREAST LIQ) ce2cb5579a2554fb341552…
-##  5 779a5b91a110bbb29f0270deca187… C383 (MEDIASTINU… 06cc32915a48b585d71e95…
-##  6 7842097efb033088897c6f816cb4f… C508 (BREAST OVE… 45bab5007635e6731111fb…
-##  7 c1f667885cd06bca083bc0861c469… C541 (ENDOMETRIU… 7b3562080adb89d5c0c933…
-##  8 0ceb098f6533f94d7564e9e88fdbe… C504 (BREAST UOQ) 96c82bcd3556821609012c…
-##  9 c13a67d6069c59ca3ad3c191fc424… C504 (BREAST UOQ) 5b3eaff66ced8bb21d185d…
-## 10 6ad68e0e61218437aa277ccb0b6d3… C504 (BREAST UOQ) 9c4da6205c5e0956f3a500…</code></pre>
-<pre class="r"><code>patient_encrypt_A %&gt;% 
+##  1 b3893d7cab7d0cf0fd995c67a2dbd… C503 (BREAST LIQ) c736f17a3181891aea16e0…
+##  2 1de5719d95f5266101ca4fb6d9f57… C509 (BREAST NOS) d46d9b022752663c989fcd…
+##  3 205e4005b698552cc0397b36b8d88… C509 (BREAST NOS) c90aaad401ba744316bb8a…
+##  4 14fb9ec409e1d21673e0ab1f41f76… C503 (BREAST LIQ) a442821b89aec5331c4e0d…
+##  5 b0ae0ce9e90e99ddca174dc8cefc2… C383 (MEDIASTINU… a0b1b63a323df5eb1e2187…
+##  6 ba08f676a4e80fc566ad27e2e7baa… C508 (BREAST OVE… 032ca6772eb27e274fd687…
+##  7 53edf8ed606590566255a39f933a0… C541 (ENDOMETRIU… bd841eb353980ca10c00a8…
+##  8 08f3354fb4c1a85b8f5585aca2f46… C504 (BREAST UOQ) b58da8f02cd2dfa43bdeeb…
+##  9 91852c9e4729b0efef936b6d26ce4… C504 (BREAST UOQ) 49d9563ca4b1e81e03a1cb…
+## 10 0c03655e150bdecefebddd8be5304… C504 (BREAST UOQ) 762f7e2e9ca8c6cc0c310d…</code></pre>
+<pre class="r code-source"><code>patient_encrypt_A %&gt;% 
   decrypt(
     medical_record_number,
     date_dx,
     private_key_path = &quot;aiyana_private_key&quot;
   )</code></pre>
-<pre><code>## # A tibble: 10 x 3
+<pre class="code-output"><code>## # A tibble: 10 x 3
 ##    medical_record_number primary_site                     date_dx   
 ##    &lt;chr&gt;                 &lt;chr&gt;                            &lt;chr&gt;     
 ##  1 984584                C503 (BREAST LIQ)                2009-02-01
@@ -174,7 +174,7 @@ patient_encrypt_A</code></pre>
 ##  8 751595                C504 (BREAST UOQ)                2012-08-18
 ##  9 385615                C504 (BREAST UOQ)                2011-01-08
 ## 10 761953                C504 (BREAST UOQ)                2012-08-08</code></pre>
-<pre class="r"><code>patient_encrypt_A %&gt;% 
+<pre class="r code-source"><code>patient_encrypt_A %&gt;% 
   decrypt(
     medical_record_number,
     date_dx,
