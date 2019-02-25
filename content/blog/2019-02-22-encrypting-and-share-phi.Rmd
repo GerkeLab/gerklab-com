@@ -63,7 +63,7 @@ Three people who need to share data:
 To set up, we create a public/private key pair for each person.
 
 ```{r create-keypairs}
-# I have to do this manually because `encryptr` doesn't expose the
+# I have to do this manually because encryptr doesn't expose the
 # password argument in openssl::write_pem()
 
 people <- c("org", "aiyana", "zane")
@@ -177,3 +177,29 @@ patient_encrypt_A %>%
     private_key_path = "zane_private_key"
   )
 ```
+
+## Make a Shared Key System Work
+
+An intereseting [StackOverflow discussion](https://security.stackexchange.com/questions/71911/pattern-to-allow-multiple-persons-to-decrypt-a-document-without-sharing-the-enc#) leads to the following hypothetical workflow.
+
+There are (essentially) two version of encryption: symmetric and asymmetric.
+The version we have been looking at above is asymmetric: the private key is used for encryption and the public key is needed for decryption.
+Symmtric encyption is when the same key is used to both encypt and decrypt.
+
+Using both types of encryption, we could do something along the lines of the following, all of which are possible with [openssl]{.pkg} (the package underlying [[encryptr]]{.pkg}).
+
+1. Encrypt the data using a symmetric key, generated on a per-document basis
+
+1. Store the symmetric key using asymmetric encryption, with N copies for each of the N potential users.
+   At a minimum, this stored key is encrypted for the Org.
+   This is called an "encrypted envelope" that can be thought of like a locked message that's only readable by each individual user (see `?openssl::encrypt_envelope`).
+   
+1. When users need to decrpyt the data, they request the envelope which they can then decode using their private key, such that they now have the symmetric key needed to decrpyt the data.
+   This entire process can be done "invisibly" to the user.
+   
+It's unclear how much of this is possible with the [[encryptr]]{.pkg} package.
+I think that the encryption methods are "hardcoded" into the `encrypt` and `decrypt` functions.
+
+Actually, this process is documented in the [cyphr package README](https://github.com/ropensci/cyphr#collaborating-with-encrypted-data):
+
+> The package contains support for a group of people are working on a sensitive data set. The data will be stored with a symmetric key. However, we never actually store the key directly, instead we'll store a copy for each user that is encrypted with the user's key. Any user with access to the data can authorise another user to access the data. This is described in more detail in the vignette (in R: `vignette("data", package = "cyphr")`).
