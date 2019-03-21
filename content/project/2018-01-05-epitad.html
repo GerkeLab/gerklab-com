@@ -31,4 +31,61 @@ header_buttons:
 
 
 <!-- Project Description or README Goes Here -->
-<p><img src="https://raw.githubusercontent.com/tgerke/epiTAD/master/figures/figure1topo.png" /></p>
+<div id="key-operations" class="section level2">
+<h2>Key Operations</h2>
+<div id="searching-by-snp" class="section level3">
+<h3>Searching by SNP</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/snp_query.gif" alt="Simple query" />
+<p class="caption">Simple query</p>
+</div>
+<p>Users can search SNPs in two ways 1) by typing rs IDs in the text box (comma separated if multiple) or 2) uploading a text file with one rs ID per line.</p>
+</div>
+<div id="variant-annotations" class="section level3">
+<h3>Variant annotations</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/snp_anno.gif" alt="Changing displayed SNP level data" />
+<p class="caption">Changing displayed SNP level data</p>
+</div>
+</div>
+<div id="gene-annotations" class="section level3">
+<h3>Gene annotations</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/gene_anno.gif" alt="Changing displayed gene level data" />
+<p class="caption">Changing displayed gene level data</p>
+</div>
+</div>
+<div id="visualizations" class="section level3">
+<h3>Visualizations</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/visual.gif" alt="Main visual" />
+<p class="caption">Main visual</p>
+</div>
+<p>By selecting plot options above the produced figure, users can alter the displayed region and color scheme and download the figure.</p>
+</div>
+<div id="examples" class="section level3">
+<h3>Examples</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/preloaded_examples.gif" alt="Pre-loaded examples" />
+<p class="caption">Pre-loaded examples</p>
+</div>
+</div>
+</div>
+<div id="additional-features" class="section level2">
+<h2>Additional Features</h2>
+<p>Users can download the figure and tables produced and bookmark any querys performed.</p>
+<p>A window providing further information about the application can be accessed by pressing the “i” button to the right of the “Perform Query” button.</p>
+<p>epiTAD should work in most modern web browsers, however, optimal performance has been observed in Chrome.</p>
+</div>
+<div id="data-sources" class="section level2">
+<h2>Data Sources</h2>
+<p>LD is calculated from 1000 Genomes Phase 1 and queried from the HaploR interface to HaploReg.</p>
+<p>TAD locations are based off of those defined by Dixon et al in ‘Topological domains in mammalian genomes identified by analysis of chromatin interactions’.</p>
+<p>The provided eQTLs were queried from GTEx.</p>
+<p>The Hi-C values are from Human Fibroblast IMR90 Hi-C experiments by Dixon et al (GSE35156).</p>
+<p>If no SNPs are in LD above the specified threshold then a range of 53500 BP is applied to either side of the SNP. If SNPs in LD exist, then the range is set to the smallest region which covers of all genomic locations in LD with the queried SNP(s) and the TAD region. This range is used for querying data from Oncotator, ENSEMBL, ClinVar and the Genome Browser.</p>
+</div>
+<div id="citing-epitad" class="section level2">
+<h2>Citing epiTAD</h2>
+<p>epiTAD was developed by Jordan Creed, Garrick Aden-Buie and Travis Gerke with scientific input from Alvaro Monteiro.</p>
+</div>
