@@ -34,4 +34,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 <!-- Project Description or README Goes Here -->
 
-![](https://raw.githubusercontent.com/tgerke/epiTAD/master/figures/figure1topo.png)
+
+```{r echo=FALSE}
+readme <- readLines(url("https://raw.githubusercontent.com/GerkeLab/epiTAD/master/README.md"))
+
+readme <- readme[-1:-grep("<!-- README start -->", readme, fixed = TRUE)]
+```
+
+`r paste(knitr::knit(text = readme), collapse = "\n")`
+
