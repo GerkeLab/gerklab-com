@@ -41,18 +41,11 @@ header_buttons:
 </div>
 <p>Users can search SNPs in two ways 1) by typing rs IDs in the text box (comma separated if multiple) or 2) uploading a text file with one rs ID per line.</p>
 </div>
-<div id="variant-annotations" class="section level3">
-<h3>Variant annotations</h3>
+<div id="additional-annotations" class="section level3">
+<h3>Additional annotations</h3>
 <div class="figure">
-<img src="https://github.com/tgerke/epiTAD/raw/master/figures/snp_anno.gif" alt="Changing displayed SNP level data" />
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/anno.gif" alt="Changing displayed SNP level data" />
 <p class="caption">Changing displayed SNP level data</p>
-</div>
-</div>
-<div id="gene-annotations" class="section level3">
-<h3>Gene annotations</h3>
-<div class="figure">
-<img src="https://github.com/tgerke/epiTAD/raw/master/figures/gene_anno.gif" alt="Changing displayed gene level data" />
-<p class="caption">Changing displayed gene level data</p>
 </div>
 </div>
 <div id="visualizations" class="section level3">
@@ -70,6 +63,13 @@ header_buttons:
 <p class="caption">Pre-loaded examples</p>
 </div>
 </div>
+<div id="more-information" class="section level3">
+<h3>More information</h3>
+<div class="figure">
+<img src="https://github.com/tgerke/epiTAD/raw/master/figures/additional_pgs.gif" alt="Additional information" />
+<p class="caption">Additional information</p>
+</div>
+</div>
 </div>
 <div id="additional-features" class="section level2">
 <h2>Additional Features</h2>
@@ -84,6 +84,16 @@ header_buttons:
 <p>The provided eQTLs were queried from GTEx.</p>
 <p>The Hi-C values are from Human Fibroblast IMR90 Hi-C experiments by Dixon et al (GSE35156).</p>
 <p>If no SNPs are in LD above the specified threshold then a range of 53500 BP is applied to either side of the SNP. If SNPs in LD exist, then the range is set to the smallest region which covers of all genomic locations in LD with the queried SNP(s) and the TAD region. This range is used for querying data from Oncotator, ENSEMBL, ClinVar and the Genome Browser.</p>
+</div>
+<div id="run-epitad-locally-with-docker" class="section level2">
+<h2>Run epiTAD locally with Docker</h2>
+<p>epiTAD is a web application built using <a href="https://shiny.rstudio.com">Shiny</a>, a framework for building interactive applications using R. We have prepared a <a href="https://hub.docker.com/r/gerkelab/epitad">pre-configured and self-contained Docker image</a> that can be used to run the application locally on a user’s machine.</p>
+<p><a href="https://www.docker.com/">Docker</a> is a tool for creating, deploying, and running applications inside <em>containers</em>, which are similar to virtual machines. Once users have installed docker on their machines (available for <a href="https://docs.docker.com/linux/step_one/">Linux</a>, <a href="https://docs.docker.com/mac/step_one/">MacOS</a>, and <a href="https://docs.docker.com/windows/step_one/">Windows</a>), they can run epiTAD with a single terminal command:</p>
+<pre class="bash"><code>docker run -d --rm -p 3838:3838 --name epiTAD gerkelab/epitad:latest</code></pre>
+<p>The first time epiTAD is launched, docker will first download and extract the application container. When the process is complete, users can navigate to <code>127.0.0.1:3838/epiTAD</code> to use the same epiTAD application interface as the one available online at <a href="https://apps.gerkelab.com/epiTAD/" class="uri">https://apps.gerkelab.com/epiTAD/</a>. (Note that an active internet connection is still required for epiTAD to function properly.)</p>
+<p>To stop the docker container and shut down epiTAD, run</p>
+<pre class="bash"><code>docker stop epiTAD</code></pre>
+<p>For users interested in learning more about Docker, we recommend <a href="https://ropenscilabs.github.io/r-docker-tutorial/">rOpenSci Labs’ Docker Tutorial</a>. We also thank the <a href="https://www.rocker-project.org/">Rocker Project</a> for creating and maintaining the R-specific Docker containers upon which epiTAD was built.</p>
 </div>
 <div id="citing-epitad" class="section level2">
 <h2>Citing epiTAD</h2>
