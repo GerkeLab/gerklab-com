@@ -290,7 +290,7 @@ pre code {
  */
 .code-source {
   padding: 0em;
-  border: 5px solid #eaeaea;
+  border: 3px solid #eaeaea;
 }
 .code-output {
   padding: 10px;
@@ -298,6 +298,12 @@ pre code {
 }
 .code-source + pre:not(.code-source) {
   margin-top: -16px;
+}
+.code-error, pre.code-error code.hljs {
+  background: #f6d3d3;
+}
+.code-error {
+  border: solid 3px #efcbcb;
 }
   
 #components h4 a {
