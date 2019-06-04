@@ -1,0 +1,89 @@
+---
+title: Working with Missing Elements in List Columns
+author: 
+  - Garrick Aden-Buie
+date: '2019-06-04'
+slug: working-with-missing-elements-in-list-columns
+categories:
+  - R
+tags:
+  - R
+  - Tips
+description: ''
+hero_bg: "/img/hero/annie-spratt-746955-unsplash.jpg"
+weight: 20
+---
+
+```{css, echo=FALSE}
+#hero {
+  background-position: 0 70%;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, warning = FALSE, message = FALSE,
+  class.source = "code-source", 
+  class.output = "code-output",
+  class.error = "code-error"
+)
+```
+
+When working with list columns, it can be useful to mark entire elements as missing, but I’m struggling to find a consistent and easy-to-use data structure that works well with `unnest()`.
+
+Here’s a small example with a list column of tibbles, where, ideally, the 2nd element is “missing”. I’d like to `unnest()` column `y` but keep all of the rows in the original data frame. In real life, the tibbles in `y` are more complicated, but when present they all have the same number and type of columns.
+
+The first idea I tried was to store missingness in the list column as `NULL`, but `unnest()` throws an error in this case.
+
+```{r, error=TRUE, warning=FALSE, message=FALSE}
+library(tidyverse)
+(data_null <- tibble(x = 1:2, y = list(tibble(z = 1L), NULL)))
+data_null %>% unnest()
+```
+
+The second idea was to use a zero-row data frame. I was hopeful this would work because it’s easy to grab a valid example and use the `valid_ex[0, ]` trick to create the zero-row data frame with the correct number and type of columns. This now works, but we lose the row with the zero-length data frame.
+
+```{r}
+(data_zero_tibble <- tibble(x = 1:2, y = list(tibble(z = 1L), tibble())))
+data_zero_tibble %>% unnest()
+```
+
+Even trying to `.preserve` column y in the `unest()` drops the zero-length row.
+
+```{r}
+data_zero_tibble %>% unnest(y, .preserve = "y")
+```
+
+What does work is to explicitly use `NA` across rows with missing values.
+
+```{r}
+(data_na_int <- tibble(x = 1:2, y = list(tibble(z = 1L), tibble(z = NA_integer_))))
+data_na_int %>% unnest()
+```
+
+And the type of missing value doesn’t seem to matter.
+
+```{r}
+(data_na_chr <- tibble(x = 1:2, y = list(tibble(z = 1L), tibble(.drop = NA_character_))))
+data_na_chr %>% unnest()
+```
+
+This might be the best solution, because it's not necessary to know anything about the other list elements in advance. All that is needed is an `NA` value in the same *data shape* as the other list elements.
+
+```{r}
+(data_iris_zero <- tibble(x = 1:2, y = list(iris[1:2, ], iris[0,])))
+data_iris_zero %>% unnest()
+
+(data_iris_na <- tibble(x = 1:2, y = list(iris[1:2, ], data.frame(Sepal.Length = NA))))
+data_iris_na %>% unnest()
+```
+
+Finally, another solution is to use the zero-length data frame element and
+`full_join()` the `unnest()`ed data with the original data, minus the list column.
+
+```{r}
+full_join(
+  data_iris_zero %>% unnest(),
+  data_iris_zero %>% select(-y)
+)
+```
