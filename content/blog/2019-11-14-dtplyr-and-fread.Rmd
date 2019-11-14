@@ -1,0 +1,55 @@
+---
+title: When does {dtplyr} help me?
+description: Investigating where efficiency gains occur when ingesting flat files with dtplyr
+author: 
+  - "Travis Gerke"
+date: '2019-11-14'
+slug: dtplyr-and-fread
+categories:
+  - R
+tags:
+  - Tips
+hero_bg: "/img/hero/ethan-weil-528367-unsplash.jpg"
+hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&amp;utm_campaign=photographer-credit).'
+---
+  
+[dtplyr]: https://dtplyr.tidyverse.org/
+[readr]: https://readr.tidyverse.org
+[datatable]: https://rdatatable.gitlab.io/data.table/
+[data]: https://www.kaggle.com/jameslko/gun-violence-data/data
+
+This post explores where to expect efficiency gains when using the new [[dtplyr]]}{.pkg} to import and manipulate large flat files.
+
+```{r library, echo=FALSE}
+library(data.table)
+library(dtplyr)
+library(tidyverse)
+library(microbenchmark)
+```
+
+
+```{r install, eval=FALSE}
+# Install packages if you need to
+install.packages(c("tidyverse", "fs"))
+
+<<library>>
+```
+
+## Problem
+
+This week, we got the following exciting announcement from Hadley Wickham regarding a big [[dtplyr]]}{.pkg} release!
+
+<div style="width: 100%; display: flex; align-content: center;">
+  <div style="margin: auto;">
+  <img src="/blog/2019-11-14-dtplyr-and-fread/dtplyr-tweet.png" style="max-width: 600px" />
+  </div>
+</div>
+
+When dealing with large flat files, I have often resorted to `data.table`'s `fread()` function, which is a very fast alternative to `readr`'s `read_csv`. Unfortunately, I'm not too comfortable with `data.table` syntax for data munging, so I have a few ugly pipelines laying around where I mash data from `fread` into some `tibble`-ish format that accepts `dplyr` verbs. In this setting [[dtplyr]]}{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I didn't immediately connect all the dots. 
+
+Specifically, does [[dtplyr]]}{.pkg} let me avoid `fread` altogether? If not, does the main [[dtplyr]]}{.pkg} function `lazy_dt()` still give me efficiency gains when I've loaded something from `fread`? Lastly, does `lazy_dt()` help when I've loaded something fully into memory via `readr`?
+
+## Example Data
+
+To illustrate, we'll use a modest 150MB csv [dataset provided by the Gun Violence Archive and available in Kaggle][data] which reports over 260k gun violence incidents in the US between 2013 and 2018.
+
