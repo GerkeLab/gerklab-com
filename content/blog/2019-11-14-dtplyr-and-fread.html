@@ -15,7 +15,7 @@ hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&a
 
 
 
-<p>This post explores where to expect efficiency gains when using the new [<a href="https://dtplyr.tidyverse.org/">dtplyr</a>]}{.pkg} to import and manipulate large flat files.</p>
+<p>This post explores where to expect efficiency gains when using the new <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> to import and manipulate large flat files.</p>
 <pre><code>## ── Attaching packages ────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
 <pre><code>## ✔ ggplot2 3.2.1           ✔ purrr   0.3.3      
 ## ✔ tibble  2.1.3           ✔ dplyr   0.8.3      
@@ -34,7 +34,10 @@ install.packages(c(&quot;tidyverse&quot;, &quot;fs&quot;))
 library(data.table)
 library(dtplyr)
 library(tidyverse)
-library(microbenchmark)</code></pre>
+library(microbenchmark)
+
+#prevent printing of readr column specs
+options(readr.num_columns = 0)</code></pre>
 <div id="problem" class="section level2">
 <h2>Problem</h2>
 <p>This week, we got the following exciting announcement from Hadley Wickham regarding a big [<a href="https://dtplyr.tidyverse.org/">dtplyr</a>]}{.pkg} release!</p>
@@ -43,16 +46,108 @@ library(microbenchmark)</code></pre>
 <img src="/blog/2019-11-14-dtplyr-and-fread/dtplyr-tweet.png" style="max-width: 600px" />
 </div>
 </div>
-<p>We would like to read in all of the CSV files inside the directory and build one large dataset by merging each of the smaller data sets together.</p>
+<p>When dealing with large flat files, I have often resorted to <code>data.table</code>’s <code>fread()</code> function, which is a very fast alternative to <code>readr</code>’s <code>read_csv</code>. Unfortunately, I’m not too comfortable with <code>data.table</code> syntax for data munging, so I have a few ugly pipelines laying around where I mash data from <code>fread</code> into some <code>tibble</code>-ish format that accepts <code>dplyr</code> verbs. In this setting [<a href="https://dtplyr.tidyverse.org/">dtplyr</a>]}{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I didn’t immediately connect all the dots.</p>
+<p>Specifically, does [<a href="https://dtplyr.tidyverse.org/">dtplyr</a>]}{.pkg} let me avoid <code>fread</code> altogether? If not, does the main [<a href="https://dtplyr.tidyverse.org/">dtplyr</a>]}{.pkg} function <code>lazy_dt()</code> still give me efficiency gains when I’ve loaded something from <code>fread</code>? Lastly, does <code>lazy_dt()</code> help when I’ve loaded something fully into memory via <code>readr</code>?</p>
 </div>
 <div id="example-data" class="section level2">
 <h2>Example Data</h2>
-<p>To make the example more concrete, we’ll use a <a href="https://www.kaggle.com/jameslko/gun-violence-data/data">dataset provided by the Gun Violence Archive and available in Kaggle</a> showing the yearly number of e-referrals per hospital department, where the data from each year reside in individual CSV files.</p>
-<p>Once we’ve extracted the zip file or downloaded the CSV files a single folder, we store the location of the unzipped folder in <code>data_dir</code>.</p>
+<p>To illustrate, we’ll use a modest 150MB csv <a href="https://www.kaggle.com/jameslko/gun-violence-data/data">dataset provided by the Gun Violence Archive and available in Kaggle</a> which reports over 260k gun violence incidents in the US between 2013 and 2018. Note that we don’t directly repost the data here in accordance with use agreements; if you’d like to reproduce the below, please download the csv via the above link and stuff it into your working directory.</p>
 </div>
-<div id="import-all-the-files" class="section level2">
-<h2>Import all the Files</h2>
-<div id="start-with-one-file" class="section level3">
-<h3>Start with one file</h3>
+<div id="benchmarks" class="section level2">
+<h2>Benchmarks</h2>
+<div id="using-read_csv" class="section level3">
+<h3>Using <code>read_csv</code></h3>
+<pre class="r"><code>microbenchmark(
+   read_csv(&quot;gun-violence-data_01-2013_03-2018.csv&quot;, progress = FALSE) %&gt;% 
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;%
+      print(),
+   times = 1,
+   unit = &quot;s&quot;
+)$time/1e9</code></pre>
+<pre><code>## # A tibble: 51 x 2
+## # Groups:   state [51]
+##    state              n
+##    &lt;chr&gt;          &lt;int&gt;
+##  1 Illinois       17556
+##  2 California     16306
+##  3 Florida        15029
+##  4 Texas          13577
+##  5 Ohio           10244
+##  6 New York        9712
+##  7 Pennsylvania    8929
+##  8 Georgia         8925
+##  9 North Carolina  8739
+## 10 Louisiana       8103
+## # … with 41 more rows</code></pre>
+<pre><code>## [1] 3.260859</code></pre>
+</div>
+<div id="using-fread" class="section level3">
+<h3>Using <code>fread</code></h3>
+<pre class="r"><code>microbenchmark(
+   fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;) %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;% 
+      as_tibble() %&gt;% 
+      print(),
+   times = 1, 
+   unit = &quot;s&quot;
+)$time/1e9</code></pre>
+<pre><code>## # A tibble: 51 x 2
+##    state              n
+##    &lt;chr&gt;          &lt;int&gt;
+##  1 Illinois       17556
+##  2 California     16306
+##  3 Florida        15029
+##  4 Texas          13577
+##  5 Ohio           10244
+##  6 New York        9712
+##  7 Pennsylvania    8929
+##  8 Georgia         8925
+##  9 North Carolina  8739
+## 10 Louisiana       8103
+## # … with 41 more rows</code></pre>
+<pre><code>## [1] 1.539779</code></pre>
+<p>A lot of the above improvement likely due to speed improvements with <code>fread</code>. Does <code>lazy_dt()</code> still save us time when data are already in memory?</p>
+<pre class="r"><code>dat_readr &lt;- read_csv(&quot;gun-violence-data_01-2013_03-2018.csv&quot;, progress = FALSE) 
+microbenchmark(
+   dat_readr %&gt;% 
+      group_by(state) %&gt;%
+      count(sort = TRUE),
+   times = 100
+)</code></pre>
+<pre><code>## Unit: milliseconds
+##                                                  expr      min       lq
+##  dat_readr %&gt;% group_by(state) %&gt;% count(sort = TRUE) 9.915535 10.32784
+##      mean  median       uq      max neval
+##  11.16728 10.5979 11.13125 50.59201   100</code></pre>
+<pre class="r"><code>microbenchmark(
+   dat_readr %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE),
+   times = 100
+)</code></pre>
+<pre><code>## Unit: milliseconds
+##                                                                expr      min
+##  dat_readr %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) 10.10388
+##        lq     mean  median       uq      max neval
+##  11.83763 50.65299 15.5975 88.97911 298.6924   100</code></pre>
+<p>Here’s the same example using <code>fread</code>.</p>
+<pre class="r"><code>dat_dt &lt;- fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;)
+microbenchmark(
+   dat_dt %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;% 
+      as_tibble(),
+   times = 100
+) </code></pre>
+<pre><code>## Unit: milliseconds
+##                                                                                  expr
+##  dat_dt %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) %&gt;%      as_tibble()
+##       min       lq    mean   median       uq      max neval
+##  3.859569 4.309553 6.98325 4.709778 5.340292 63.46967   100</code></pre>
 </div>
 </div>

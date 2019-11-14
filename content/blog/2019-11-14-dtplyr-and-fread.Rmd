@@ -18,13 +18,16 @@ hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&a
 [datatable]: https://rdatatable.gitlab.io/data.table/
 [data]: https://www.kaggle.com/jameslko/gun-violence-data/data
 
-This post explores where to expect efficiency gains when using the new [[dtplyr]]}{.pkg} to import and manipulate large flat files.
+This post explores where to expect efficiency gains when using the new [[dtplyr]]{.pkg} to import and manipulate large flat files.
 
 ```{r library, echo=FALSE}
 library(data.table)
 library(dtplyr)
 library(tidyverse)
 library(microbenchmark)
+
+#prevent printing of readr column specs
+options(readr.num_columns = 0)
 ```
 
 
@@ -51,5 +54,69 @@ Specifically, does [[dtplyr]]}{.pkg} let me avoid `fread` altogether? If not, do
 
 ## Example Data
 
-To illustrate, we'll use a modest 150MB csv [dataset provided by the Gun Violence Archive and available in Kaggle][data] which reports over 260k gun violence incidents in the US between 2013 and 2018.
+To illustrate, we'll use a modest 150MB csv [dataset provided by the Gun Violence Archive and available in Kaggle][data] which reports over 260k gun violence incidents in the US between 2013 and 2018. Note that we don't directly repost the data here in accordance with use agreements; if you'd like to reproduce the below, please download the csv via the above link and stuff it into your working directory. 
 
+## Benchmarks
+
+### Using `read_csv`
+
+```{r}
+microbenchmark(
+   read_csv("gun-violence-data_01-2013_03-2018.csv", progress = FALSE) %>% 
+      group_by(state) %>%
+      count(sort = TRUE) %>%
+      print(),
+   times = 1,
+   unit = "s"
+)$time/1e9
+```
+
+### Using `fread`
+
+```{r}
+microbenchmark(
+   fread("gun-violence-data_01-2013_03-2018.csv") %>% 
+      lazy_dt() %>%
+      group_by(state) %>%
+      count(sort = TRUE) %>% 
+      as_tibble() %>% 
+      print(),
+   times = 1, 
+   unit = "s"
+)$time/1e9
+```
+
+A lot of the above improvement likely due to speed improvements with `fread`. Does `lazy_dt()` still save us time when data are already in memory?
+
+```{r}
+dat_readr <- read_csv("gun-violence-data_01-2013_03-2018.csv", progress = FALSE) 
+microbenchmark(
+   dat_readr %>% 
+      group_by(state) %>%
+      count(sort = TRUE),
+   times = 100
+)
+```
+
+```{r}
+microbenchmark(
+   dat_readr %>% 
+      lazy_dt() %>%
+      group_by(state) %>%
+      count(sort = TRUE),
+   times = 100
+)
+```
+
+Here's the same example using `fread`.
+```{r}
+dat_dt <- fread("gun-violence-data_01-2013_03-2018.csv")
+microbenchmark(
+   dat_dt %>% 
+      lazy_dt() %>%
+      group_by(state) %>%
+      count(sort = TRUE) %>% 
+      as_tibble(),
+   times = 100
+) 
+```
