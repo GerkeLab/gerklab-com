@@ -15,21 +15,23 @@ hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&a
   
 [dtplyr]: https://dtplyr.tidyverse.org/
 [readr]: https://readr.tidyverse.org
+[dplyr]: https://dplyr.tidyverse.org/
 [datatable]: https://rdatatable.gitlab.io/data.table/
 [data]: https://www.kaggle.com/jameslko/gun-violence-data/data
 
 This post explores where to expect efficiency gains when using the new [[dtplyr]]{.pkg} to import and manipulate large flat files.
 
-```{r library, echo=FALSE}
+```{r library, echo=FALSE, message=FALSE}
 library(data.table)
 library(dtplyr)
 library(tidyverse)
 library(microbenchmark)
+```
 
+```{r setup, include=FALSE}
 #prevent printing of readr column specs
 options(readr.num_columns = 0)
 ```
-
 
 ```{r install, eval=FALSE}
 # Install packages if you need to
@@ -40,7 +42,7 @@ install.packages(c("tidyverse", "fs"))
 
 ## Problem
 
-This week, we got the following exciting announcement from Hadley Wickham regarding a big [[dtplyr]]}{.pkg} release!
+This week, we got the following exciting announcement from Hadley Wickham regarding a big [[dtplyr]]{.pkg} release!
 
 <div style="width: 100%; display: flex; align-content: center;">
   <div style="margin: auto;">
@@ -48,18 +50,24 @@ This week, we got the following exciting announcement from Hadley Wickham regard
   </div>
 </div>
 
-When dealing with large flat files, I have often resorted to `data.table`'s `fread()` function, which is a very fast alternative to `readr`'s `read_csv`. Unfortunately, I'm not too comfortable with `data.table` syntax for data munging, so I have a few ugly pipelines laying around where I mash data from `fread` into some `tibble`-ish format that accepts `dplyr` verbs. In this setting [[dtplyr]]}{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I didn't immediately connect all the dots. 
+When dealing with large flat files, I have often resorted to [[datatable]]{.pkg}'s `fread()` function, which is a very fast alternative to [[readr]]{.pkg}'s `read_csv` (for example). Unfortunately, I'm not too comfortable with [[datatable]]{.pkg} syntax for data munging, so I have a few ugly pipelines laying around where I mash data from `fread` into some `tibble`-ish format that accepts [[dplyr]]{.pkg} verbs. In this setting [[dtplyr]]{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I've had trouble connecting all the dots. 
 
-Specifically, does [[dtplyr]]}{.pkg} let me avoid `fread` altogether? If not, does the main [[dtplyr]]}{.pkg} function `lazy_dt()` still give me efficiency gains when I've loaded something from `fread`? Lastly, does `lazy_dt()` help when I've loaded something fully into memory via `readr`?
+Specific questions: 
+- Does [[dtplyr]]{.pkg} let me avoid `fread` altogether? (Spoiler: Not really, that's not [[dtplyr]]{.pkg}'s purpose.)
+- If not, does the main [[dtplyr]]{.pkg} function `lazy_dt()` still give me efficiency gains when I've loaded something from `fread`? (Spoiler: Absolutely, that is the point.)
+- Does `lazy_dt()` help when I've loaded something fully into memory via `readr`? (Spoiler: No.)
 
 ## Example Data
 
 To illustrate, we'll use a modest 150MB csv [dataset provided by the Gun Violence Archive and available in Kaggle][data] which reports over 260k gun violence incidents in the US between 2013 and 2018. Note that we don't directly repost the data here in accordance with use agreements; if you'd like to reproduce the below, please download the csv via the above link and stuff it into your working directory. 
 
+All we'll do in the below is simply load the data, then group by state and print a sorted count of incidents. For each strategy, we'll keep track of compute time.
+
 ## Benchmarks
 
 ### Using `read_csv`
 
+Here's the traditional strategy: use `read_csv` to load the data, and do the usual `group_by() %>% count()` work.
 ```{r}
 microbenchmark(
    read_csv("gun-violence-data_01-2013_03-2018.csv", progress = FALSE) %>% 
@@ -73,6 +81,7 @@ microbenchmark(
 
 ### Using `fread`
 
+Here's the same result, but loading with `fread`. The cool part here, brought to us by [[dtplyr]]{.pkg}, is that we don't have to bring the large data table into memory to use the `group_by() %>% count()` verbs; we simply cast to `lazy_dt()` and then `as_tibble()` the much smaller results table for printing. 
 ```{r}
 microbenchmark(
    fread("gun-violence-data_01-2013_03-2018.csv") %>% 
@@ -85,9 +94,13 @@ microbenchmark(
    unit = "s"
 )$time/1e9
 ```
+This method is about <i>twice as fast</i>!!!
 
-A lot of the above improvement likely due to speed improvements with `fread`. Does `lazy_dt()` still save us time when data are already in memory?
+### What about objects already in memory? 
 
+Maybe the above performance gain isn't that surprising: a lot of the above boost is likely due to speed improvements with `fread`, which we already knew about. Does `lazy_dt()` still save us time when data are already in memory?
+
+Here, we load with `read_csv` and store as the tibble `dat_readr`. Then, we do the `group_by() %>% count()` 100 times. 
 ```{r}
 dat_readr <- read_csv("gun-violence-data_01-2013_03-2018.csv", progress = FALSE) 
 microbenchmark(
@@ -98,6 +111,7 @@ microbenchmark(
 )
 ```
 
+Here, we use the same `dat_readr` object, but cast it to `lazy_dt` before doing the `group_by() %>% count()` 100 times. 
 ```{r}
 microbenchmark(
    dat_readr %>% 
@@ -107,8 +121,9 @@ microbenchmark(
    times = 100
 )
 ```
+This second approach is actually a little slower, which totally made sense to me once I saw the answer! Why would taking extra steps to lazily evaluate something already in memory be faster? Doh!
 
-Here's the same example using `fread`.
+For completeness, here's the same example where we store an object `dat_dt` using `fread`.
 ```{r}
 dat_dt <- fread("gun-violence-data_01-2013_03-2018.csv")
 microbenchmark(
@@ -120,3 +135,7 @@ microbenchmark(
    times = 100
 ) 
 ```
+That's <i>at least</i> 3 times faster! Word.
+
+## Summary
+The above is likely the simplest possible use-case of reading a flat file with [[datatable]]{.pkg} and munging it with standard [[dplyr]]{.pkg} verbs via [[dtplyr]]{.pkg}. The `fread() %>% lazydt()` combo is <i>very fast</i>, and will keep you sane if you aren't fully versed in [[datatable]]{.pkg} syntax. 
