@@ -62,7 +62,7 @@ Specific questions:
 
 To illustrate, we'll use a modest 150MB csv [dataset provided by the Gun Violence Archive and available in Kaggle][data] which reports over 260k gun violence incidents in the US between 2013 and 2018. Note that we don't directly repost the data here in accordance with use agreements; if you'd like to reproduce the below, please download the csv via the above link and stuff it into your working directory. 
 
-All we'll do in the below is simply load the data, then group by state and print a sorted count of incidents. For each strategy, we'll keep track of compute time.
+All we'll do below is simply load the data, then group by state and print a sorted count of incidents. For each strategy, we'll keep track of compute time.
 
 ## Benchmarks
 
@@ -122,7 +122,7 @@ microbenchmark(
    times = 100
 )
 ```
-This second approach is actually a little slower, which totally made sense to me once I saw the answer! Why would taking extra steps to lazily evaluate something already in memory be faster? Doh!
+This second approach is actually slower, which totally made sense to me once I saw the answer! Why would taking extra steps to lazily evaluate something already in memory be faster? Doh!
 
 For completeness, here's the same example where we store an object `dat_dt` using `fread`.
 ```{r}
