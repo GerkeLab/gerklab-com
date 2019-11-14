@@ -1,0 +1,158 @@
+---
+title: When does {dtplyr} help me?
+description: Investigating where efficiency gains occur when ingesting flat files with dtplyr
+author: 
+  - "Travis Gerke"
+date: '2019-11-14'
+slug: dtplyr-and-fread
+categories:
+  - R
+tags:
+  - Tips
+hero_bg: "/img/hero/ethan-weil-528367-unsplash.jpg"
+hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&amp;utm_campaign=photographer-credit).'
+---
+
+
+
+<p>This post explores where to expect efficiency gains when using the new <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> to import and manipulate large flat files.</p>
+<pre class="r"><code># Install packages if you need to
+install.packages(c(&quot;tidyverse&quot;, &quot;fs&quot;))
+
+library(data.table)
+library(dtplyr)
+library(tidyverse)
+library(microbenchmark)</code></pre>
+<div id="problem" class="section level2">
+<h2>Problem</h2>
+<p>This week, we got the following exciting announcement from Hadley Wickham regarding a big <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> release!</p>
+<div style="width: 100%; display: flex; align-content: center;">
+<div style="margin: auto;">
+<img src="/blog/2019-11-14-dtplyr-and-fread/dtplyr-tweet.png" style="max-width: 600px" />
+</div>
+</div>
+<p>When dealing with large flat files, I have often resorted to <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span>’s <code>fread</code> function, which is a very fast alternative to <span class="pkg"><a href="https://readr.tidyverse.org">readr</a></span>’s <code>read_csv</code> (for example). Unfortunately, I’m not too comfortable with <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> syntax for data munging, so I have a few ugly pipelines laying around where I mash data from <code>fread</code> into some <code>tibble</code>-ish format that accepts <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs. In this setting, <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I’ve had trouble connecting all the dots.</p>
+<p>Specific questions:</p>
+<ul>
+<li>Does <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> let me avoid <code>fread</code> altogether? (Spoiler: Not really, that’s not <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>’s purpose.)</li>
+<li>If not, does the main <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> function <code>lazy_dt</code> still give me efficiency gains when I’ve loaded something from <code>fread</code>? (Spoiler: Absolutely, that is the point.)</li>
+<li>Does <code>lazy_dt</code> help when I’ve loaded something fully into memory via <code>readr</code>? (Spoiler: No.)</li>
+</ul>
+</div>
+<div id="example-data" class="section level2">
+<h2>Example Data</h2>
+<p>To illustrate, we’ll use a modest 150MB csv <a href="https://www.kaggle.com/jameslko/gun-violence-data/data">dataset provided by the Gun Violence Archive and available in Kaggle</a> which reports over 260k gun violence incidents in the US between 2013 and 2018. Note that we don’t directly repost the data here in accordance with use agreements; if you’d like to reproduce the below, please download the csv via the above link and stuff it into your working directory.</p>
+<p>All we’ll do below is simply load the data, then group by state and print a sorted count of incidents. For each strategy, we’ll keep track of compute time.</p>
+</div>
+<div id="benchmarks" class="section level2">
+<h2>Benchmarks</h2>
+<div id="using-read_csv" class="section level3">
+<h3>Using <code>read_csv</code></h3>
+<p>Here’s the traditional strategy: use <code>read_csv</code> to load the data, and do the usual <code>group_by() %&gt;% count()</code> work.</p>
+<pre class="r"><code>microbenchmark(
+   read_csv(&quot;gun-violence-data_01-2013_03-2018.csv&quot;, progress = FALSE) %&gt;% 
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;%
+      print(),
+   times = 1,
+   unit = &quot;s&quot;
+)$time/1e9</code></pre>
+<pre><code>## # A tibble: 51 x 2
+## # Groups:   state [51]
+##    state              n
+##    &lt;chr&gt;          &lt;int&gt;
+##  1 Illinois       17556
+##  2 California     16306
+##  3 Florida        15029
+##  4 Texas          13577
+##  5 Ohio           10244
+##  6 New York        9712
+##  7 Pennsylvania    8929
+##  8 Georgia         8925
+##  9 North Carolina  8739
+## 10 Louisiana       8103
+## # … with 41 more rows</code></pre>
+<pre><code>## [1] 3.373726</code></pre>
+</div>
+<div id="using-fread" class="section level3">
+<h3>Using <code>fread</code></h3>
+<p>Here’s the same result, but loading with <code>fread</code>. The cool part here, brought to us by <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>, is that we don’t have to bring the large data table into memory to use the <code>group_by() %&gt;% count()</code> verbs; we simply cast to <code>lazy_dt</code> and then <code>as_tibble</code> the much smaller results table for printing.</p>
+<pre class="r"><code>microbenchmark(
+   fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;) %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;% 
+      as_tibble() %&gt;% 
+      print(),
+   times = 1, 
+   unit = &quot;s&quot;
+)$time/1e9</code></pre>
+<pre><code>## # A tibble: 51 x 2
+##    state              n
+##    &lt;chr&gt;          &lt;int&gt;
+##  1 Illinois       17556
+##  2 California     16306
+##  3 Florida        15029
+##  4 Texas          13577
+##  5 Ohio           10244
+##  6 New York        9712
+##  7 Pennsylvania    8929
+##  8 Georgia         8925
+##  9 North Carolina  8739
+## 10 Louisiana       8103
+## # … with 41 more rows</code></pre>
+<pre><code>## [1] 1.161118</code></pre>
+<p>This method is about <i>twice as fast</i>!!!</p>
+</div>
+<div id="what-about-objects-already-in-memory" class="section level3">
+<h3>What about objects already in memory?</h3>
+<p>Maybe the above performance gain isn’t that surprising: a lot of the above boost is likely due to speed improvements with <code>fread</code>, which we already knew about. Does <code>lazy_dt()</code> still save us time when data are already in memory?</p>
+<p>Here, we load with <code>read_csv</code> and store as the tibble <code>dat_readr</code>. Then, we do the <code>group_by() %&gt;% count()</code> 100 times.</p>
+<pre class="r"><code>dat_readr &lt;- read_csv(&quot;gun-violence-data_01-2013_03-2018.csv&quot;, progress = FALSE) 
+microbenchmark(
+   dat_readr %&gt;% 
+      group_by(state) %&gt;%
+      count(sort = TRUE),
+   times = 100
+)</code></pre>
+<pre><code>## Unit: milliseconds
+##                                                  expr      min       lq
+##  dat_readr %&gt;% group_by(state) %&gt;% count(sort = TRUE) 9.454512 10.20473
+##      mean   median       uq      max neval
+##  11.15166 10.52119 11.14279 53.51589   100</code></pre>
+<p>Here, we use the same <code>dat_readr</code> object, but cast it to <code>lazy_dt</code> before doing the <code>group_by() %&gt;% count()</code> 100 times.</p>
+<pre class="r"><code>microbenchmark(
+   dat_readr %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE),
+   times = 100
+)</code></pre>
+<pre><code>## Unit: milliseconds
+##                                                                expr      min
+##  dat_readr %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) 10.64056
+##        lq     mean  median       uq      max neval
+##  11.99145 49.00027 14.5085 83.51196 243.6867   100</code></pre>
+<p>This second approach is actually slower, which totally made sense to me once I saw the answer! Why would taking extra steps to lazily evaluate something already in memory be faster? Doh!</p>
+<p>For completeness, here’s the same example where we store an object <code>dat_dt</code> using <code>fread</code>.</p>
+<pre class="r"><code>dat_dt &lt;- fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;)
+microbenchmark(
+   dat_dt %&gt;% 
+      lazy_dt() %&gt;%
+      group_by(state) %&gt;%
+      count(sort = TRUE) %&gt;% 
+      as_tibble(),
+   times = 100
+) </code></pre>
+<pre><code>## Unit: milliseconds
+##                                                                                  expr
+##  dat_dt %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) %&gt;%      as_tibble()
+##      min       lq     mean   median       uq      max neval
+##  3.85039 4.322646 5.870348 4.492541 4.892027 63.86446   100</code></pre>
+<p>That’s <i>at least</i> 3 times faster! Word.</p>
+</div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>The above is likely the simplest possible use-case of reading a flat file with <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> and munging it with standard <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs via <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>. The <code>fread() %&gt;% lazydt()</code> combo is <i>very fast</i>, and will keep you sane if you are a <code>tidyverse</code> user not fully versed in <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> syntax.</p>
+</div>
