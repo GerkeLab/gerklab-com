@@ -16,7 +16,7 @@ hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&a
 [dtplyr]: https://dtplyr.tidyverse.org/
 [readr]: https://readr.tidyverse.org
 [dplyr]: https://dplyr.tidyverse.org/
-[data.table]: https://rdatatable.gitlab.io/data.table/
+[datatable]: https://rdatatable.gitlab.io/data.table/
 [data]: https://www.kaggle.com/jameslko/gun-violence-data/data
 
 This post explores where to expect efficiency gains when using the new [[dtplyr]]{.pkg} to import and manipulate large flat files.
