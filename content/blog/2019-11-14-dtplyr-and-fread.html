@@ -31,11 +31,13 @@ library(microbenchmark)</code></pre>
 <img src="/blog/2019-11-14-dtplyr-and-fread/dtplyr-tweet.png" style="max-width: 600px" />
 </div>
 </div>
-<p>When dealing with large flat files, I have often resorted to <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span>’s <code>fread()</code> function, which is a very fast alternative to <span class="pkg"><a href="https://readr.tidyverse.org">readr</a></span>’s <code>read_csv</code> (for example). Unfortunately, I’m not too comfortable with <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> syntax for data munging, so I have a few ugly pipelines laying around where I mash data from <code>fread</code> into some <code>tibble</code>-ish format that accepts <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs. In this setting <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I’ve had trouble connecting all the dots.</p>
-<p>Specific questions:
-- Does <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> let me avoid <code>fread</code> altogether? (Spoiler: Not really, that’s not <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>’s purpose.)
-- If not, does the main <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> function <code>lazy_dt()</code> still give me efficiency gains when I’ve loaded something from <code>fread</code>? (Spoiler: Absolutely, that is the point.)
-- Does <code>lazy_dt()</code> help when I’ve loaded something fully into memory via <code>readr</code>? (Spoiler: No.)</p>
+<p>When dealing with large flat files, I have often resorted to <span class="pkg">[datatable]</span>’s <code>fread</code> function, which is a very fast alternative to <span class="pkg"><a href="https://readr.tidyverse.org">readr</a></span>’s <code>read_csv</code> (for example). Unfortunately, I’m not too comfortable with <span class="pkg">[datatable]</span> syntax for data munging, so I have a few ugly pipelines laying around where I mash data from <code>fread</code> into some <code>tibble</code>-ish format that accepts <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs. In this setting, <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I’ve had trouble connecting all the dots.</p>
+<p>Specific questions:</p>
+<ul>
+<li>Does <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> let me avoid <code>fread</code> altogether? (Spoiler: Not really, that’s not <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>’s purpose.)</li>
+<li>If not, does the main <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span> function <code>lazy_dt</code> still give me efficiency gains when I’ve loaded something from <code>fread</code>? (Spoiler: Absolutely, that is the point.)</li>
+<li>Does <code>lazy_dt</code> help when I’ve loaded something fully into memory via <code>readr</code>? (Spoiler: No.)</li>
+</ul>
 </div>
 <div id="example-data" class="section level2">
 <h2>Example Data</h2>
@@ -70,11 +72,11 @@ library(microbenchmark)</code></pre>
 ##  9 North Carolina  8739
 ## 10 Louisiana       8103
 ## # … with 41 more rows</code></pre>
-<pre><code>## [1] 3.273839</code></pre>
+<pre><code>## [1] 3.402769</code></pre>
 </div>
 <div id="using-fread" class="section level3">
 <h3>Using <code>fread</code></h3>
-<p>Here’s the same result, but loading with <code>fread</code>. The cool part here, brought to us by <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>, is that we don’t have to bring the large data table into memory to use the <code>group_by() %&gt;% count()</code> verbs; we simply cast to <code>lazy_dt()</code> and then <code>as_tibble()</code> the much smaller results table for printing.</p>
+<p>Here’s the same result, but loading with <code>fread</code>. The cool part here, brought to us by <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>, is that we don’t have to bring the large data table into memory to use the <code>group_by() %&gt;% count()</code> verbs; we simply cast to <code>lazy_dt</code> and then <code>as_tibble</code> the much smaller results table for printing.</p>
 <pre class="r"><code>microbenchmark(
    fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;) %&gt;% 
       lazy_dt() %&gt;%
@@ -99,7 +101,7 @@ library(microbenchmark)</code></pre>
 ##  9 North Carolina  8739
 ## 10 Louisiana       8103
 ## # … with 41 more rows</code></pre>
-<pre><code>## [1] 1.123748</code></pre>
+<pre><code>## [1] 1.139436</code></pre>
 <p>This method is about <i>twice as fast</i>!!!</p>
 </div>
 <div id="what-about-objects-already-in-memory" class="section level3">
@@ -114,10 +116,10 @@ microbenchmark(
    times = 100
 )</code></pre>
 <pre><code>## Unit: milliseconds
-##                                                  expr      min       lq
-##  dat_readr %&gt;% group_by(state) %&gt;% count(sort = TRUE) 9.582088 10.23353
-##      mean   median       uq      max neval
-##  11.65688 10.67922 11.35262 51.27662   100</code></pre>
+##                                                  expr     min       lq     mean
+##  dat_readr %&gt;% group_by(state) %&gt;% count(sort = TRUE) 9.22928 10.14675 10.99235
+##    median       uq     max neval
+##  10.44149 11.10256 52.1349   100</code></pre>
 <p>Here, we use the same <code>dat_readr</code> object, but cast it to <code>lazy_dt</code> before doing the <code>group_by() %&gt;% count()</code> 100 times.</p>
 <pre class="r"><code>microbenchmark(
    dat_readr %&gt;% 
@@ -127,10 +129,10 @@ microbenchmark(
    times = 100
 )</code></pre>
 <pre><code>## Unit: milliseconds
-##                                                                expr      min
-##  dat_readr %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) 10.06019
+##                                                                expr     min
+##  dat_readr %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) 10.3529
 ##        lq     mean   median       uq      max neval
-##  12.43393 51.42494 17.37375 86.32804 234.9824   100</code></pre>
+##  11.94439 47.15385 14.30251 82.47561 235.1726   100</code></pre>
 <p>This second approach is actually a little slower, which totally made sense to me once I saw the answer! Why would taking extra steps to lazily evaluate something already in memory be faster? Doh!</p>
 <p>For completeness, here’s the same example where we store an object <code>dat_dt</code> using <code>fread</code>.</p>
 <pre class="r"><code>dat_dt &lt;- fread(&quot;gun-violence-data_01-2013_03-2018.csv&quot;)
@@ -146,11 +148,11 @@ microbenchmark(
 ##                                                                                  expr
 ##  dat_dt %&gt;% lazy_dt() %&gt;% group_by(state) %&gt;% count(sort = TRUE) %&gt;%      as_tibble()
 ##       min       lq     mean   median       uq      max neval
-##  3.894719 4.382426 6.090996 4.687098 5.361122 64.47008   100</code></pre>
+##  3.937948 4.385912 6.031366 4.601923 5.018099 62.15293   100</code></pre>
 <p>That’s <i>at least</i> 3 times faster! Word.</p>
 </div>
 </div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
-<p>The above is likely the simplest possible use-case of reading a flat file with <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> and munging it with standard <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs via <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>. The <code>fread() %&gt;% lazydt()</code> combo is <i>very fast</i>, and will keep you sane if you aren’t fully versed in <span class="pkg"><a href="https://rdatatable.gitlab.io/data.table/">datatable</a></span> syntax.</p>
+<p>The above is likely the simplest possible use-case of reading a flat file with <span class="pkg">[datatable]</span> and munging it with standard <span class="pkg"><a href="https://dplyr.tidyverse.org/">dplyr</a></span> verbs via <span class="pkg"><a href="https://dtplyr.tidyverse.org/">dtplyr</a></span>. The <code>fread() %&gt;% lazydt()</code> combo is <i>very fast</i>, and will keep you sane if you are a <code>tidyverse</code> user not fully versed in <span class="pkg">[datatable]</span> syntax.</p>
 </div>

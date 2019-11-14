@@ -16,7 +16,7 @@ hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&a
 [dtplyr]: https://dtplyr.tidyverse.org/
 [readr]: https://readr.tidyverse.org
 [dplyr]: https://dplyr.tidyverse.org/
-[datatable]: https://rdatatable.gitlab.io/data.table/
+[data.table]: https://rdatatable.gitlab.io/data.table/
 [data]: https://www.kaggle.com/jameslko/gun-violence-data/data
 
 This post explores where to expect efficiency gains when using the new [[dtplyr]]{.pkg} to import and manipulate large flat files.
@@ -50,12 +50,13 @@ This week, we got the following exciting announcement from Hadley Wickham regard
   </div>
 </div>
 
-When dealing with large flat files, I have often resorted to [[datatable]]{.pkg}'s `fread()` function, which is a very fast alternative to [[readr]]{.pkg}'s `read_csv` (for example). Unfortunately, I'm not too comfortable with [[datatable]]{.pkg} syntax for data munging, so I have a few ugly pipelines laying around where I mash data from `fread` into some `tibble`-ish format that accepts [[dplyr]]{.pkg} verbs. In this setting [[dtplyr]]{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I've had trouble connecting all the dots. 
+When dealing with large flat files, I have often resorted to [[datatable]]{.pkg}'s `fread` function, which is a very fast alternative to [[readr]]{.pkg}'s `read_csv` (for example). Unfortunately, I'm not too comfortable with [[datatable]]{.pkg} syntax for data munging, so I have a few ugly pipelines laying around where I mash data from `fread` into some `tibble`-ish format that accepts [[dplyr]]{.pkg} verbs. In this setting, [[dtplyr]]{.pkg} <i>feels</i> like the idyllic solution but, being a lesser mortal than Hadley, I've had trouble connecting all the dots. 
 
 Specific questions: 
-- Does [[dtplyr]]{.pkg} let me avoid `fread` altogether? (Spoiler: Not really, that's not [[dtplyr]]{.pkg}'s purpose.)
-- If not, does the main [[dtplyr]]{.pkg} function `lazy_dt()` still give me efficiency gains when I've loaded something from `fread`? (Spoiler: Absolutely, that is the point.)
-- Does `lazy_dt()` help when I've loaded something fully into memory via `readr`? (Spoiler: No.)
+
+  - Does [[dtplyr]]{.pkg} let me avoid `fread` altogether? (Spoiler: Not really, that's not [[dtplyr]]{.pkg}'s purpose.)
+  - If not, does the main [[dtplyr]]{.pkg} function `lazy_dt` still give me efficiency gains when I've loaded something from `fread`? (Spoiler: Absolutely, that is the point.)
+  - Does `lazy_dt` help when I've loaded something fully into memory via `readr`? (Spoiler: No.)
 
 ## Example Data
 
@@ -81,7 +82,7 @@ microbenchmark(
 
 ### Using `fread`
 
-Here's the same result, but loading with `fread`. The cool part here, brought to us by [[dtplyr]]{.pkg}, is that we don't have to bring the large data table into memory to use the `group_by() %>% count()` verbs; we simply cast to `lazy_dt()` and then `as_tibble()` the much smaller results table for printing. 
+Here's the same result, but loading with `fread`. The cool part here, brought to us by [[dtplyr]]{.pkg}, is that we don't have to bring the large data table into memory to use the `group_by() %>% count()` verbs; we simply cast to `lazy_dt` and then `as_tibble` the much smaller results table for printing. 
 ```{r}
 microbenchmark(
    fread("gun-violence-data_01-2013_03-2018.csv") %>% 
@@ -138,4 +139,4 @@ microbenchmark(
 That's <i>at least</i> 3 times faster! Word.
 
 ## Summary
-The above is likely the simplest possible use-case of reading a flat file with [[datatable]]{.pkg} and munging it with standard [[dplyr]]{.pkg} verbs via [[dtplyr]]{.pkg}. The `fread() %>% lazydt()` combo is <i>very fast</i>, and will keep you sane if you aren't fully versed in [[datatable]]{.pkg} syntax. 
+The above is likely the simplest possible use-case of reading a flat file with [[datatable]]{.pkg} and munging it with standard [[dplyr]]{.pkg} verbs via [[dtplyr]]{.pkg}. The `fread() %>% lazydt()` combo is <i>very fast</i>, and will keep you sane if you are a `tidyverse` user not fully versed in [[datatable]]{.pkg} syntax. 
