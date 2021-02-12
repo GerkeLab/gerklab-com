@@ -1,0 +1,121 @@
+---
+title: Exploring longitudinal treatment sequences
+description: A brief R + {reactable} pattern paired that makes drug or treatment sequences quickly searchable
+author: 
+  - "Travis Gerke"
+date: '2021-02-11'
+slug: treatment-sequences
+categories:
+  - R
+tags:
+  - Tips
+hero_bg: "/img/hero/ethan-weil-528367-unsplash.jpg"
+hero_credit: '[Ethan Weil](https://unsplash.com/@weilstyle?utm_medium=referral&amp;utm_campaign=photographer-credit).'
+---
+  
+[reactable]: https://glin.github.io/reactable/
+
+This post demonstrates a brief R pattern paired with [[reactable]]{.pkg} that makes drug or treatment patterns quickly searchable by an end-user via `.html` report. 
+
+```{r library, echo=FALSE, message=FALSE}
+library(tidyverse)
+library(reactable)
+```
+
+```{r install, eval=FALSE}
+# Install packages if you need to
+install.packages(c("tidyverse", "reactable"))
+
+<<library>>
+```
+
+## Objective
+
+I often need to summarize what lines of therapy were received by patients from large electronic health record (EHR) data. End users of these summaries (clinicians or research investigators) typically want to quickly know how many patients received a combination of drugs in certain sequences. I've found the following pattern of arranging treatment strings into a searchable [[reactable]]{.pkg} table gets the job done. 
+
+### Simulated data for demonstration
+
+Suppose you have data across 1000 patients with an average of 5 rows of therapy for each. The data are arranged in long format, and the first 15 rows look like this:
+```{r simulate-data}
+set.seed(8675309)
+
+# number of patients
+n <- 1000
+# number of rows (several per patient)
+n_rows <- n*5
+
+ehr_data <- tibble(
+  patient_id = sample(12345:(12345+n-1), size = n_rows, replace = TRUE),
+  treatment = sample(
+    c("Abiraterone",
+      "Enzalutamide",
+      "Docetaxel",
+      "Lupron",
+      "Prednisone"
+      ),
+    size = n_rows, replace = TRUE, prob = c(.3, .3, .1, .1, .2)
+  ),
+  treatment_date = sample(
+    seq(as.Date("2016-01-01"), as.Date("2018-12-31"), by = "day"),
+    size = n_rows, replace = TRUE
+  )
+)
+
+# print the first 15 rows
+ehr_data %>%
+  arrange(patient_id, treatment_date) %>%
+  head(15)
+```
+
+### Treatment sequences by patient
+
+One view of the data that may be requested is of the type: "I want to know which patients received abiraterone in combination with other drugs. I also want to look at patterns of care for patients who received enzalutamide." The following `reactable` table does this job: type `abi` or `enza` in the search filter box for treatment sequence, and boom!
+
+```{r treatment-sequences}
+ehr_data %>% 
+  group_by(patient_id) %>% 
+  arrange(treatment_date) %>% 
+  summarise(
+    treatment_sequence = paste(unique(treatment), collapse = ", "), 
+    .groups = "drop_last"
+  ) %>% 
+  rename(
+    "Treatment sequence" = treatment_sequence,
+    "Patient ID" = patient_id
+  ) %>%
+  reactable(
+    columns = list(
+      "Patient ID" = colDef(minWidth = 100),
+      "Treatment sequence" = colDef(minWidth = 300)
+    ),
+    filterable = TRUE
+  )
+```
+
+### Frequency of treatment sequences
+
+Another common request is "What are the 5 most common treatment sequences?" or "Which treatment sequences have sufficient patient numbers that I can study them?" Adding a `count()` to the above code pattern and sorting the `n` column in the `reactable` table gets that job done quite nicely. 
+
+```{r treatment-summary}
+ehr_data %>% 
+  group_by(patient_id) %>% 
+  arrange(treatment_date) %>% 
+  summarise(
+    treatment_sequence = paste(unique(treatment), collapse = ", "), 
+    .groups = "drop_last"
+  ) %>%
+  count(treatment_sequence, sort = TRUE) %>%
+  rename("Treatment sequence" = treatment_sequence) %>%
+    reactable(
+    columns = list(
+      "Treatment sequence" = colDef(minWidth = 400),
+      n = colDef(minWidth = 100)
+    ),
+    sortable = TRUE, filterable = TRUE
+  )
+```
+
+## Final note
+One thing to note is that concurrent or repeat treatments not handled separately in the above code patterns, and the tables only print a given drug once according to first date of receipt. For example, if a patient's regime was Abiraterone + Prednisone &#8594; Enzalutamide &#8594; Abiraterone, that patient's treatment sequence would show up as `Abiraterone, Prednisone, Enzalutamide`. There are certainly more rigorous ways to do this (list columns come to mind); however, I've found this sort of view goes a long way towards assessing study feasibility or honing attention to those patients with treatment regimes relevant to a particular research study. 
+
+Full code at: [https://github.com/tgerke/treatment-sequences](https://github.com/tgerke/treatment-sequences)
