@@ -87,7 +87,7 @@ Go to [https://github.com/settings/developers](https://github.com/settings/devel
 
 ### Register GitHub as an OAuth provider in Netlify
 
-Within Netlify.com, connect your GitHub repository as a site, and go to settings. On the left-hand bar, find `Access control`: in the OAuth section here, add GitHub as a provider and copy over the client ID and secret from the previous step. 
+Within Netlify.com, connect your GitHub repository as a site (some tips to do this from [Alison Hill](https://alison.rbind.io/post/2017-06-12-up-and-running-with-blogdown/)), and go to settings. On the left-hand bar, find `Access control`: in the OAuth section here, add GitHub as a provider and copy over the client ID and secret from the previous step. 
 
 ### Set up GitHub Actions to build the site
 
