@@ -1,0 +1,118 @@
+---
+title: Using Netlify CMS with R Markdown, hosted on GitHub Pages
+description: This workflow makes it possible to generate an R Markdown website in GitHub Pages which is editable by non-git users
+author: 
+  - "Travis Gerke"
+date: '2021-04-02'
+slug: netlifycms-rmd-ghpages
+categories:
+  - R
+tags:
+  - R Markdown, GitHub Pages, Netlify
+---
+  
+[rmarkdown]: https://github.com/rstudio/rmarkdown
+[rmdformats]: https://github.com/juba/rmdformats
+
+This post demonstrates a way to publish a simple [[rmarkdown]]{.pkg} website on GitHub Pages that can be edited in the browser by non-git users. The user interface is powered by the [Netlify CMS](https://www.netlifycms.org/).  
+
+
+## Objective
+
+Generating web content with [R Markdown](https://rmarkdown.rstudio.com/) is awesome, and a great (free!) place to host such work is on [GitHub Pages](https://pages.github.com/). The only not-great part is when you want to crowdsource content creation/editing to collaborators who do not use git. A good example would be a team-wide wiki.
+
+### Create a website
+
+We can quickly put together a nice-looking site with the help of the [[rmdformats]]{.pkg} package. First, create a new R project, and drop a new `index.Rmd` into the directory with `yaml` header like the following:
+
+```
+---
+title: Edit this wiki with Netlify CMS
+date: "`r Sys.Date()`"
+author: Travis Gerke
+output: rmdformats::robobook
+---
+```
+
+Then, you can type some markdown as you usually would to produce content. Here's the little demo site I initiated (code at [https://github.com/tgerke/netlifycms-rmd-github](https://github.com/tgerke/netlifycms-rmd-github))
+
+<div style="width: 100%; display: flex; align-content: center;">
+  <div style="margin: auto;">
+  <img src="/blog/2021-04-02-netlifycms-rmd-github/build-site.gif" style="max-width: 600px" />
+  </div>
+</div>
+
+Next, push this directory up to a GitHub repo and publish it to GitHub Pages (a process which has been excellently described [by Emily Zabor](https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html)). 
+
+### Set up Netlify's required `admin/` directory
+
+Following [instructions](https://www.netlifycms.org/docs/add-to-your-site/) from Netlify CMS, the `admin` folder will have two files: `index.html` and `config.yml`. The `html` file is the entry point for the (non-git) user interface, and the `yml` file has important configuration options. You don't have to edit `index.html` at all, while `config.yml` takes some work to make it understand the R Markdown approach we're hoping for. 
+
+Here's a general structure that will allow CMS editing of specific `.Rmd` and `.md` files (in this case, `index.Rmd` and `README.md`). You can open up whole directories too with the `folder:` specification (details [here](https://www.netlifycms.org/docs/configuration-options)). 
+
+```
+backend:
+  name: github
+  repo: you/your-repo
+  branch: main
+  site_domain: your-optional-netlify-link.netlify.app
+
+site_url: https://you.github.io/your-repo/
+
+media_folder: "images/uploads"
+
+collections:
+  - name: "Rmd Pages"
+    label: "Rmarkdown"
+    format: "yaml-frontmatter"
+    files:
+      - label: "Index"
+        name: "index"
+        file: "index.Rmd"
+        fields:
+          - {label: "Body", name: "body", widget: "markdown"}
+  - name: "Markdown Pages"
+    label: "markdown"
+    files:
+      - label: "readme"
+        name: "readme"
+        file: "README.md"
+        fields:
+          - {label: "Body", name: "body", widget: "markdown"}
+```
+
+### Register Netlify CMS in GitHub OAuth
+
+Go to [https://github.com/settings/developers](https://github.com/settings/developers) to generate an OAuth App with Netlify. The application name and homepage URL don't matter (I put `Netlify CMS` and `https://tgerke.github.io/`, respectively), but for Authorization callback URL we need `https://api.netlify.com/auth/done`. Keep the client ID and client secret for the next step!!!
+
+### Register GitHub as an OAuth provider in Netlify
+
+Within Netlify.com, connect your GitHub repository as a site, and go to settings. On the left-hand bar, find `Access control`: in the OAuth section here, add GitHub as a provider and copy over the client ID and secret from the previous step. 
+
+### Set up GitHub Actions to build the site
+
+At this point, the Netlify CMS is actually functional, and you/users would be able to edit via the CMS interface. One extra step is needed though: you will be editing `.Rmd` files through the interface, and the html site needs to be rebuilt when edits are complete. We'll use GitHub Actions to do that. I've discussed these steps [previously](https://tgerke.github.io/github-actions-with-r/); in short, the workflow comes from [`r-lib/actions`](https://github.com/r-lib/actions) and if you copy my `.github/` directory [here](https://github.com/tgerke/netlifycms-rmd-github) it should work for you as well.
+
+### And now, magic happens
+
+The moment you've been waiting for: append your site URL with `/admin` to access the Netlify CMS editor page. Edit. Publish. (Behind the scenes, a push to `Main` automatically happens, then Actions takes over and rebuilds the site). Like this:
+
+<div style="width: 100%; display: flex; align-content: center;">
+  <div style="margin: auto;">
+  <img src="/blog/2021-04-02-netlifycms-rmd-github/edit-page-with-netlify.gif" style="max-width: 600px" />
+  </div>
+</div>
+
+Wait a minute or so, and after the GitHub Actions build you see the result on GitHub Pages:
+
+<div style="width: 100%; display: flex; align-content: center;">
+  <div style="margin: auto;">
+  <img src="/blog/2021-04-02-netlifycms-rmd-github/edited-page.png" style="max-width: 600px" />
+  </div>
+</div>
+
+Happy developing &#128526;
+
+---
+
+Full code at [https://github.com/tgerke/netlifycms-rmd-github](https://github.com/tgerke/netlifycms-rmd-github) with rendered page at [https://tgerke.github.io/netlifycms-rmd-github/](https://tgerke.github.io/netlifycms-rmd-github/).
