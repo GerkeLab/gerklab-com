@@ -19,7 +19,7 @@ This post demonstrates a way to publish a simple [[rmarkdown]]{.pkg} website on 
 
 ## Objective
 
-Generating web content with [R Markdown](https://rmarkdown.rstudio.com/) is awesome, and a great (free!) place to host such work is on [GitHub Pages](https://pages.github.com/). The only not-great part is when you want to crowdsource content creation/editing to collaborators who do not use git. A good example would be a team-wide wiki.
+Generating web content with [R Markdown](https://rmarkdown.rstudio.com/) is awesome, and a great (free!) place to host such work is on [GitHub Pages](https://pages.github.com/). The only not-great part is when you want to crowdsource content creation/editing to collaborators who do not use git. A good example would be a team-wide wiki. The [Netlify CMS](https://www.netlifycms.org/) can solve this, and this post describes how to make it work with R Markdown web content published to GitHub Pages.
 
 ### Create a website
 

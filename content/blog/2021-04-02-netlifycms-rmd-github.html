@@ -17,7 +17,7 @@ tags:
 <p>This post demonstrates a way to publish a simple <span class="pkg"><a href="https://github.com/rstudio/rmarkdown">rmarkdown</a></span> website on GitHub Pages that can be edited in the browser by non-git users. The user interface is powered by the <a href="https://www.netlifycms.org/">Netlify CMS</a>.</p>
 <div id="objective" class="section level2">
 <h2>Objective</h2>
-<p>Generating web content with <a href="https://rmarkdown.rstudio.com/">R Markdown</a> is awesome, and a great (free!) place to host such work is on <a href="https://pages.github.com/">GitHub Pages</a>. The only not-great part is when you want to crowdsource content creation/editing to collaborators who do not use git. A good example would be a team-wide wiki.</p>
+<p>Generating web content with <a href="https://rmarkdown.rstudio.com/">R Markdown</a> is awesome, and a great (free!) place to host such work is on <a href="https://pages.github.com/">GitHub Pages</a>. The only not-great part is when you want to crowdsource content creation/editing to collaborators who do not use git. A good example would be a team-wide wiki. The <a href="https://www.netlifycms.org/">Netlify CMS</a> can solve this, and this post describes how to make it work with R Markdown web content published to GitHub Pages.</p>
 <div id="create-a-website" class="section level3">
 <h3>Create a website</h3>
 <p>We can quickly put together a nice-looking site with the help of the <span class="pkg"><a href="https://github.com/juba/rmdformats">rmdformats</a></span> package. First, create a new R project, and drop a new <code>index.Rmd</code> into the directory with <code>yaml</code> header like the following:</p>
