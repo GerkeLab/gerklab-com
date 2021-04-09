@@ -1,0 +1,49 @@
+---
+title: GitHub ssh and config with multiple accounts
+description: This process enables automatic username and email recognition for multiple GitHub/GitLab accounts based on local directory location
+author: 
+  - "Travis Gerke"
+date: '2021-04-09'
+slug: multiple-github-accounts
+categories:
+  - R
+tags:
+  - tips
+  - GitHub
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>This post demonstrates how to simplify multiple GitHub or GitLab account management in your local computer. Using a <code>.gitconfig</code> conditional, git will set <code>user.name</code> and <code>user.email</code> based on repository location.</p>
+<div id="objective" class="section level2">
+<h2>Objective</h2>
+<p>I often need to switch between multiple GitHub and GitLab accounts (e.g. for various personal and work applications). Using ssh keys to avoid repetitive entry of numerous username and password combinations is a must; but, even after you’ve done this, you will have to manually set your <code>git config</code> fields (<code>user.name</code> and <code>user.email</code>) for any git repositories that are not using the default account in your global <code>git config</code>. To avoid this manual entry, you can set up a <a href="https://git-scm.com/docs/git-config#_conditional_includes">conditional include</a> in your main <code>.gitconfig</code> file so that git will know which user ID and email to use depending on local repository location.</p>
+<div id="use-the-same-ssh-key-across-applications" class="section level3">
+<h3>Use the same ssh key across applications</h3>
+<p>This is a bit of a sidebar from the <code>git config</code> discussion, but I used to handle my ssh key pairs in an unnecessarily complicated way. For each GitHub account, I was generating a separate ssh pair, and then managing them with separate entries in my <code>~/.ssh/config</code>file, like <a href="https://gist.github.com/jexchan/2351996/de8ad280bef07c668fe55486e2bca546079efdc8">this</a>. Then, I read this line from <a href="https://happygitwithr.com/ssh-keys.html">Happy Git with R</a> and 🤯 🤯 🤯</p>
+<blockquote>
+<p>You should probably have one key per computer (I do this). Some people even have one key per computer, per service (I do not do this).</p>
+</blockquote>
+<p>The take-home message: <strong>create only one ssh key pair for your machine and your life will be so much easier.</strong> No need to make complicated <code>~/.ssh/config</code>files; just give each GitHub/GitLab account the same public key and you’re done.</p>
+</div>
+<div id="use-conditional-logic" class="section level3">
+<h3>Use conditional logic</h3>
+<p>Now for the cool stuff. Traditionally, I’ve locally stashed GitHub repos in a single project folder; let’s say <code>~/Desktop/gh-repos/</code>. This works fine for a single account: you do your work and commits will be credited to the <code>user.name</code> and <code>user.email</code> that you establish in your global <code>~/.gitconfig</code> file (instructions to do this <a href="https://happygitwithr.com/hello-git.html">here</a>). If you have multiple accounts though, you’ll have to manually set this identify when you’re working in a repo that does not use the global default. Specifically, I used to do that process like the following, which will modify a <code>.git/config</code> file within your working repo to override the default.</p>
+<pre><code>git config user.name &#39;tgerke&#39;
+git config user.email tgerke@workemail.com</code></pre>
+<p>This is fine, but is an extra step that I don’t love trying to remember (indeed I’ve forgotten and then get undesirable behavior when I commit from the wrong account).</p>
+<p>Turns out, there’s a great workaround (credit to the conditional include answer on <a href="https://stackoverflow.com/questions/4220416/can-i-specify-multiple-users-for-myself-in-gitconfig">this SO post</a>). In your global <code>~/.gitconfig</code> file, you can set up a <a href="https://git-scm.com/docs/git-config#_conditional_includes">conditional include</a> which will automatically set your identity, depending on where the repository directory is located. To get started, create dedicated directories on your local machine for each GitHub account you wish to use. For now, I’ll just create two: <code>~/Desktop/gh-repos/</code> for my personal repos (the default identity) and <code>~/Desktop/gh-repos-work/</code> for my work account repos (my secondary identity). Now, I put the following in the <code>~/.gitconfig</code> file:</p>
+<pre><code>[user]
+    name = Travis Gerke
+    email = tgerke@personalemail.com
+
+[includeIf &quot;gitdir:~/Desktop/gh-repos-work/&quot;]
+    path = ~/Desktop/gh-repos-work/.gitconfig</code></pre>
+<p>This makes my default identity <code>Travis Gerke</code> with email <code>tgerke@personalemail.com</code> for anywhere I use a git repo on my machine, <em>except</em> when I’m in the <code>~/Desktop/gh-repos-work/</code> directory. When a repository is stored in this directory, git uses the separate <code>~/Desktop/gh-repos-work/.gitconfig</code> file, in which I entered my work credentials like so:</p>
+<pre><code>[user]
+    name = tgerke
+    email = tgerke@workemail.com</code></pre>
+<p>Now you’re all set: just put your repos in the right directories, and let the config files do the rest. 😀</p>
+</div>
+</div>
