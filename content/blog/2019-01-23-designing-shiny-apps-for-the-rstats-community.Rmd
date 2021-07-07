@@ -1,0 +1,293 @@
+---
+title: 'Designing Shiny Apps for the #rstats Community'
+author: 
+  - Garrick Aden-Buie
+date: '2019-01-23'
+slug: designing-shiny-apps-for-the-rstats-community
+categories:
+  - R
+tags:
+  - R
+  - Tips
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = TRUE)
+```
+
+I recently created a Shiny app for #rstudioconf...
+Enabled google analytics because wanted to see if/when/how the app was being used and because running on Digital Ocean.
+
+Gives me a chance to come up with some data-driven guidelines for designing shiny apps -- for #rstats devs, at least.
+
+## Getting Started with Google Analytics - False start
+
+link: Adding GA to your Shiny app
+
+Follow instructions at https://github.com/jdeboer/ganalytics/#readme
+
+On GA side: https://github.com/jdeboer/ganalytics/#2-prepare-your-google-api-application-you-only-need-to-do-this-once
+
+For me:
+
+- Go to https://console.developers.google.com/apis/
+- Create a new Google project (dropdown at top right)
+- Search for "Analytics API" and enable
+- Go to APIs & Services > Credentials
+- Create Credentials
+- OAuth client
+- Add your website to login page
+- Copy `client ID` and `client secret` into `~/.Renviron` as `GOOGLE_APIS_CONSUMER_ID` and `GOOGLE_APIS_CONSUMER_SECRET`
+- Add `GOOGLE_APIS_USER="my@gmail.com"`
+
+```{r eval=FALSE}
+# ga_creds <- jsonlite::fromJSON("~/Downloads/google-analytics-0b8141ace51f.json")
+# ga_creds_text <- glue::glue(
+#   'GOOGLE_APIS_CONSUMER_ID="{ga_creds$client_id}"
+#    GOOGLE_APIS_CONSUMER_SECRET="{ga_creds$private_key}"'
+# )
+# cat(ga_creds_text, file = "~/.Renviron", append = TRUE)
+```
+
+```{r eval=FALSE}
+library(ganalytics)
+creds <- GoogleApiCreds()
+query <- GaQuery()
+Metrics(query) <- "pageviews"
+data <- GetGaData(query)
+summary(data)
+```
+
+## Getting Started with Google Analytics
+
+Update `~/.Renviron` using the `client_id` and `client_secret` from above.
+
+```
+# ~/.Renviron
+options(googleAuthR.client_id = "uxxxxxxx2fd4kesu6.apps.googleusercontent.com")
+options(googleAuthR.client_secret = "3JhLa_GxxxxxCQYLe31c64")
+options(googleAuthR.scopes.selected = "https://www.googleapis.com/auth/analytics")
+```
+
+```{r library}
+library(tidyverse)
+theme_set(
+  theme_minimal(base_family = "Lato") +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+)
+```
+
+```{r library-hidden, eval=FALSE}
+library(googleAnalyticsR)
+ga_auth()
+```
+
+```{r ga-analytics, eval=FALSE}
+metrics_date_range <- c("2019-01-04", paste(Sys.Date()))
+
+account_list <- ga_account_list()
+
+ga_data <- list()
+
+rsconf_viewId <- 
+  account_list %>% 
+  select(viewId, websiteUrl, viewName) %>% 
+  filter(str_detect(websiteUrl, "rstudioconf")) %>% 
+  pull(viewId)
+
+ga_data$ga_metrics <- 
+  google_analytics_meta() %>% 
+  filter(str_detect(
+    tolower(uiName),
+    "browser|operating system|mobile device (model|branding|info)|(^screen)|time on page"),
+    status == "PUBLIC"
+  ) %>% 
+  as_tibble()
+
+ga_data$ga_metrics %>% 
+  select(name, type, uiName)
+
+ga_data$screen_sizes <- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c("sessions", "timeOnPage", "screenViews"),
+  dimensions = c("screenResolution", 
+                 "browser", 
+                 "browserVersion",
+                 "browserSize",
+                 "operatingSystem", 
+                 "operatingSystemVersion")
+  ) %>% 
+  as_tibble()
+
+ga_data$browser_os <- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c("sessions", "timeOnPage", "screenViews"),
+  dimensions = c("browser", 
+                 "browserVersion",
+                 "operatingSystem", 
+                 "operatingSystemVersion")
+  ) %>% 
+  as_tibble()
+
+ga_data$op_sys <- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c("sessions", "timeOnPage", "screenViews"),
+  dimensions = c("operatingSystem", 
+                 "operatingSystemVersion")
+  ) %>% 
+  as_tibble()
+
+ga_data$mobile <- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range,
+  metrics = c("sessions", "timeOnPage", "screenViews"),
+  dimensions = ga_data$ga_metrics %>% 
+    filter(str_detect(uiName, "Mobile")) %>% 
+    pull(name)
+) %>% as_tibble()
+```
+
+```{r ga-cache-data, include=FALSE, eval=FALSE}
+fs::dir_create(here::here("data-cache"))
+saveRDS(ga_data, here::here("data-cache", "ga_data.rds"))
+```
+
+```{r}
+ga_data <- readRDS(here::here("data-cache", "ga_data.rds"))
+```
+
+## Common Browsers by Operating System
+
+```{r popular-os-browsers, echo = FALSE}
+os_popular <- 
+  ga_data$screen_sizes %>% 
+  count(operatingSystem) %>% 
+  filter(n >= 5) %>% 
+  pull(operatingSystem)
+
+browser_popular <- 
+  ga_data$screen_sizes %>% 
+  count(operatingSystem, browser) %>%
+  filter(n > 2) %>% 
+  pull(browser)
+```
+
+```{r browser-plot, echo = FALSE, fig.height=8}
+browsers <- ga_data$browser_os %>%
+  group_by(browser, operatingSystem) %>%
+  summarize(sessions = sum(sessions)) %>%
+  filter(sessions > 1) %>%
+  summarize(sessions = sum(sessions)) %>%
+  pull(browser)
+
+browser_colors <- setNames(ggsci::pal_jama()(length(browsers)), browsers)
+
+ga_data$browser_os %>%
+  filter(operatingSystem %in% os_popular) %>% 
+  group_by(browser, operatingSystem) %>%
+  summarize(sessions = sum(sessions)) %>%
+  filter(sessions > 1) %>% 
+  ungroup() %>% 
+  mutate(
+    operatingSystem = fct_reorder(operatingSystem, sessions, max, .desc = TRUE),
+    sessions = sessions / sum(sessions)
+  ) %>% 
+  split(.$operatingSystem) %>% 
+  imap(~ {
+    mutate(.x, 
+           browser = fct_reorder(browser, sessions, max),
+           text_placement = ifelse(sessions < 0.05, sessions, 0),
+           text_hjust = ifelse(sessions < 0.05, -0.1, 1.05)
+    ) %>% 
+    ggplot() +
+      aes(operatingSystem, sessions, fill = browser) +
+      geom_col(position = "dodge") + 
+      geom_text(
+        aes(label = browser, color = browser, y = text_placement, hjust = text_hjust),
+        vjust = 0.5,
+        position = position_dodge(1)
+      ) +
+      scale_fill_manual(values = browser_colors) +
+      scale_color_manual(values = browser_colors) +
+      scale_y_continuous(labels = scales::percent_format(5), expand = expand_scale(mult = c(0.1, 0.05), add = 0)) +
+      scale_x_discrete(expand = expand_scale(0, 0)) +
+      guides(fill = FALSE, color = FALSE) +
+      coord_flip(clip = "off") +
+      labs(
+        y = if (.y == "Linux") "Percent of Overall Traffic",
+        x = NULL,
+         title = .y
+      ) +
+      theme(axis.text.y = element_blank(),
+            axis.title.x = element_text(color = "grey40"),
+            plot.title = element_text(hjust = 0.5)
+      )
+  }) %>% 
+  cowplot::plot_grid(plotlist = ., align = "hv", axis = "l", ncol = 1)
+```
+
+## Screen Resolution
+
+```{r screen-resolution-chart, echo = FALSE, fig.height=10, fig.width = 12}
+screen_res <- c(480, 800, 1024, 1440, 2880)
+screen_res_maj <- setNames(screen_res, screen_res)
+screen_res <- sort(c(-screen_res[-1], screen_res))
+screen_res <- setNames(screen_res, abs(screen_res))
+# screen_res_maj <- screen_res[seq(2, length(screen_res), 2)]
+
+ga_data$screen_sizes %>% 
+  filter(
+    operatingSystem %in% os_popular,
+    browser %in% browser_popular
+  ) %>% 
+  separate(screenResolution, c("screen_width", "screen_height"), sep = "x") %>% 
+  mutate_at(vars(starts_with("screen_")), as.integer) %>% 
+  mutate(mobile = c("Desktop", "Mobile")[str_detect(operatingSystem, "Android|iOS") + 1]) %>% 
+  split(.$mobile) %>%
+  imap(~ {
+    if (.y == "Desktop") {
+      screen_res <- screen_res[abs(screen_res) %in% c(800, 1440, 2880)]
+      screen_res_maj <- screen_res_maj[abs(screen_res_maj) %in% c(800, 1440, 2880)]
+    }
+    ggplot(.x %>% arrange(desc(sessions))) +
+      aes(fill = browser) +
+      geom_vline(
+        xintercept = screen_res[abs(screen_res) < max(.x$screen_width)]/2, 
+        color = "grey95") +
+      geom_hline(
+        yintercept = screen_res[abs(screen_res) < max(.x$screen_height)]/2, 
+        color = "grey95") +
+      geom_rect(
+        aes(xmin = -screen_width/2, xmax = screen_width/2,
+            ymin = -screen_height/2, ymax = screen_height/2,
+            alpha = sessions)
+      ) +
+      facet_grid(operatingSystem ~ browser,
+                 switch = "y") +
+      coord_equal() +
+      guides(fill = FALSE) +
+      scale_alpha_continuous(range = c(0.15, 0.25)) +
+      scale_x_continuous(breaks = screen_res_maj/2,
+                         labels = names(screen_res_maj)) +
+      scale_y_continuous(breaks = screen_res_maj/2,
+                         labels = names(screen_res_maj),
+                         position = "right") +
+      ggtitle(.y) +
+      labs(alpha = "Sessions", x = NULL, y = NULL) +
+      theme(
+        panel.grid = element_blank(),
+        panel.border = element_rect(color = "grey60", fill = NA),
+        plot.title = element_text(hjust = 0.5, family = "Fira Sans"),
+        axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0.5),
+        strip.text.y = element_text(angle = 180, face = "bold"),
+        strip.placement = "outside"
+      )
+  }) %>% 
+  cowplot::plot_grid(plotlist = ., ncol = 1)
+```

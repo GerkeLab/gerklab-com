@@ -1,0 +1,140 @@
+---
+title: 'Designing Shiny Apps for the #rstats Community'
+author: 
+  - Garrick Aden-Buie
+date: '2019-01-23'
+slug: designing-shiny-apps-for-the-rstats-community
+categories:
+  - R
+tags:
+  - R
+  - Tips
+---
+
+
+
+<p>I recently created a Shiny app for #rstudioconf…
+Enabled google analytics because wanted to see if/when/how the app was being used and because running on Digital Ocean.</p>
+<p>Gives me a chance to come up with some data-driven guidelines for designing shiny apps – for #rstats devs, at least.</p>
+<div id="getting-started-with-google-analytics---false-start" class="section level2">
+<h2>Getting Started with Google Analytics - False start</h2>
+<p>link: Adding GA to your Shiny app</p>
+<p>Follow instructions at <a href="https://github.com/jdeboer/ganalytics/#readme" class="uri">https://github.com/jdeboer/ganalytics/#readme</a></p>
+<p>On GA side: <a href="https://github.com/jdeboer/ganalytics/#2-prepare-your-google-api-application-you-only-need-to-do-this-once" class="uri">https://github.com/jdeboer/ganalytics/#2-prepare-your-google-api-application-you-only-need-to-do-this-once</a></p>
+<p>For me:</p>
+<ul>
+<li>Go to <a href="https://console.developers.google.com/apis/" class="uri">https://console.developers.google.com/apis/</a></li>
+<li>Create a new Google project (dropdown at top right)</li>
+<li>Search for “Analytics API” and enable</li>
+<li>Go to APIs &amp; Services &gt; Credentials</li>
+<li>Create Credentials</li>
+<li>OAuth client</li>
+<li>Add your website to login page</li>
+<li>Copy <code>client ID</code> and <code>client secret</code> into <code>~/.Renviron</code> as <code>GOOGLE_APIS_CONSUMER_ID</code> and <code>GOOGLE_APIS_CONSUMER_SECRET</code></li>
+<li>Add <code>GOOGLE_APIS_USER="my@gmail.com"</code></li>
+</ul>
+<pre class="r"><code># ga_creds &lt;- jsonlite::fromJSON(&quot;~/Downloads/google-analytics-0b8141ace51f.json&quot;)
+# ga_creds_text &lt;- glue::glue(
+#   &#39;GOOGLE_APIS_CONSUMER_ID=&quot;{ga_creds$client_id}&quot;
+#    GOOGLE_APIS_CONSUMER_SECRET=&quot;{ga_creds$private_key}&quot;&#39;
+# )
+# cat(ga_creds_text, file = &quot;~/.Renviron&quot;, append = TRUE)</code></pre>
+<pre class="r"><code>library(ganalytics)
+creds &lt;- GoogleApiCreds()
+query &lt;- GaQuery()
+Metrics(query) &lt;- &quot;pageviews&quot;
+data &lt;- GetGaData(query)
+summary(data)</code></pre>
+</div>
+<div id="getting-started-with-google-analytics" class="section level2">
+<h2>Getting Started with Google Analytics</h2>
+<p>Update <code>~/.Renviron</code> using the <code>client_id</code> and <code>client_secret</code> from above.</p>
+<pre><code># ~/.Renviron
+options(googleAuthR.client_id = &quot;uxxxxxxx2fd4kesu6.apps.googleusercontent.com&quot;)
+options(googleAuthR.client_secret = &quot;3JhLa_GxxxxxCQYLe31c64&quot;)
+options(googleAuthR.scopes.selected = &quot;https://www.googleapis.com/auth/analytics&quot;)</code></pre>
+<pre class="r"><code>library(tidyverse)
+theme_set(
+  theme_minimal(base_family = &quot;Lato&quot;) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+)</code></pre>
+<pre class="r"><code>library(googleAnalyticsR)
+ga_auth()</code></pre>
+<pre class="r"><code>metrics_date_range &lt;- c(&quot;2019-01-04&quot;, paste(Sys.Date()))
+
+account_list &lt;- ga_account_list()
+
+ga_data &lt;- list()
+
+rsconf_viewId &lt;- 
+  account_list %&gt;% 
+  select(viewId, websiteUrl, viewName) %&gt;% 
+  filter(str_detect(websiteUrl, &quot;rstudioconf&quot;)) %&gt;% 
+  pull(viewId)
+
+ga_data$ga_metrics &lt;- 
+  google_analytics_meta() %&gt;% 
+  filter(str_detect(
+    tolower(uiName),
+    &quot;browser|operating system|mobile device (model|branding|info)|(^screen)|time on page&quot;),
+    status == &quot;PUBLIC&quot;
+  ) %&gt;% 
+  as_tibble()
+
+ga_data$ga_metrics %&gt;% 
+  select(name, type, uiName)
+
+ga_data$screen_sizes &lt;- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
+  dimensions = c(&quot;screenResolution&quot;, 
+                 &quot;browser&quot;, 
+                 &quot;browserVersion&quot;,
+                 &quot;browserSize&quot;,
+                 &quot;operatingSystem&quot;, 
+                 &quot;operatingSystemVersion&quot;)
+  ) %&gt;% 
+  as_tibble()
+
+ga_data$browser_os &lt;- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
+  dimensions = c(&quot;browser&quot;, 
+                 &quot;browserVersion&quot;,
+                 &quot;operatingSystem&quot;, 
+                 &quot;operatingSystemVersion&quot;)
+  ) %&gt;% 
+  as_tibble()
+
+ga_data$op_sys &lt;- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range, 
+  metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
+  dimensions = c(&quot;operatingSystem&quot;, 
+                 &quot;operatingSystemVersion&quot;)
+  ) %&gt;% 
+  as_tibble()
+
+ga_data$mobile &lt;- google_analytics(
+  rsconf_viewId,
+  date_range = metrics_date_range,
+  metrics = c(&quot;sessions&quot;, &quot;timeOnPage&quot;, &quot;screenViews&quot;),
+  dimensions = ga_data$ga_metrics %&gt;% 
+    filter(str_detect(uiName, &quot;Mobile&quot;)) %&gt;% 
+    pull(name)
+) %&gt;% as_tibble()</code></pre>
+<pre class="r"><code>ga_data &lt;- readRDS(here::here(&quot;data-cache&quot;, &quot;ga_data.rds&quot;))</code></pre>
+</div>
+<div id="common-browsers-by-operating-system" class="section level2">
+<h2>Common Browsers by Operating System</h2>
+<p><img src="/blog/2019-01-23-designing-shiny-apps-for-the-rstats-community_files/figure-html/browser-plot-1.png" width="672" /></p>
+</div>
+<div id="screen-resolution" class="section level2">
+<h2>Screen Resolution</h2>
+<p><img src="/blog/2019-01-23-designing-shiny-apps-for-the-rstats-community_files/figure-html/screen-resolution-chart-1.png" width="1152" /></p>
+</div>
