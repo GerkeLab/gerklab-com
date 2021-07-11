@@ -204,8 +204,18 @@ a {
 }
 
 a:hover {
-  color: #7F8BBF; }
-  
+  color: #D3751C;
+}
+
+#post-box a:hover {
+  background: #e7e7f3;
+  color: #161688;
+  padding: 3px;
+  margin-left: -3px;
+  margin-right: -3px;
+  border-radius: 3px;
+}
+
 .button.primary {
   background-color: #D3751C;
 }
@@ -260,6 +270,8 @@ p > .pkg > a:hover {
   margin-right: -4px;
   padding-right: 4px;
   background-color: #eff4ef;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 h1 > code, h2 > code, h3 > code, h4 > code, h5 > code {
@@ -270,6 +282,28 @@ h1 > code, h2 > code, h3 > code, h4 > code, h5 > code {
 pre code {
   overflow-x: auto;
   white-space: pre;
+}
+
+/* 
+  Fancier looking code chunks ----
+  knitr::opts_chunk$set(class.source = "code-source", class.output = "code-output") 
+ */
+.code-source {
+  padding: 0em;
+  border: 3px solid #eaeaea;
+}
+.code-output {
+  padding: 10px;
+  background: #fafafa;
+}
+.code-source + pre:not(.code-source) {
+  margin-top: -16px;
+}
+.code-error, pre.code-error code.hljs {
+  background: #f6d3d3;
+}
+.code-error {
+  border: solid 3px #efcbcb;
 }
   
 #components h4 a {

@@ -1,0 +1,117 @@
+---
+title: Working with Missing Elements in List Columns
+author: 
+  - Garrick Aden-Buie
+date: '2019-06-04'
+slug: working-with-missing-elements-in-list-columns
+categories:
+  - R
+tags:
+  - R
+  - Tips
+description: ''
+hero_bg: "/img/hero/annie-spratt-746955-unsplash.jpg"
+weight: 20
+---
+
+
+
+<style type="text/css">
+#hero {
+  background-position: 0 70%;
+}
+</style>
+<p>When working with list columns, it can be useful to mark entire elements as missing, but I’m struggling to find a consistent and easy-to-use data structure that works well with <code>unnest()</code>.</p>
+<p>Here’s a small example with a list column of tibbles, where, ideally, the 2nd element is “missing”. I’d like to <code>unnest()</code> column <code>y</code> but keep all of the rows in the original data frame. In real life, the tibbles in <code>y</code> are more complicated, but when present they all have the same number and type of columns.</p>
+<p>The first idea I tried was to store missingness in the list column as <code>NULL</code>, but <code>unnest()</code> throws an error in this case.</p>
+<pre class="r code-source"><code>library(tidyverse)
+(data_null &lt;- tibble(x = 1:2, y = list(tibble(z = 1L), NULL)))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;tibble [1 × 1]&gt;
+## 2     2 &lt;NULL&gt;</code></pre>
+<pre class="r code-source"><code>data_null %&gt;% unnest()</code></pre>
+<pre class="code-error"><code>## Each column must either be a list of vectors or a list of data frames [y]</code></pre>
+<p>The second idea was to use a zero-row data frame. I was hopeful this would work because it’s easy to grab a valid example and use the <code>valid_ex[0, ]</code> trick to create the zero-row data frame with the correct number and type of columns. This now works, but we lose the row with the zero-length data frame.</p>
+<pre class="r code-source"><code>(data_zero_tibble &lt;- tibble(x = 1:2, y = list(tibble(z = 1L), tibble())))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;tibble [1 × 1]&gt;
+## 2     2 &lt;tibble [0 × 0]&gt;</code></pre>
+<pre class="r code-source"><code>data_zero_tibble %&gt;% unnest()</code></pre>
+<pre class="code-output"><code>## # A tibble: 1 x 2
+##       x     z
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     1</code></pre>
+<p>Even trying to <code>.preserve</code> column y in the <code>unest()</code> drops the zero-length row.</p>
+<pre class="r code-source"><code>data_zero_tibble %&gt;% unnest(y, .preserve = &quot;y&quot;)</code></pre>
+<pre class="code-output"><code>## # A tibble: 1 x 3
+##       x y                    z
+##   &lt;int&gt; &lt;list&gt;           &lt;int&gt;
+## 1     1 &lt;tibble [1 × 1]&gt;     1</code></pre>
+<p>What does work is to explicitly use <code>NA</code> across rows with missing values.</p>
+<pre class="r code-source"><code>(data_na_int &lt;- tibble(x = 1:2, y = list(tibble(z = 1L), tibble(z = NA_integer_))))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;tibble [1 × 1]&gt;
+## 2     2 &lt;tibble [1 × 1]&gt;</code></pre>
+<pre class="r code-source"><code>data_na_int %&gt;% unnest()</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x     z
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     1
+## 2     2    NA</code></pre>
+<p>And the type of missing value doesn’t seem to matter.</p>
+<pre class="r code-source"><code>(data_na_chr &lt;- tibble(x = 1:2, y = list(tibble(z = 1L), tibble(.drop = NA_character_))))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;tibble [1 × 1]&gt;
+## 2     2 &lt;tibble [1 × 1]&gt;</code></pre>
+<pre class="r code-source"><code>data_na_chr %&gt;% unnest()</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 3
+##       x     z .drop
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;
+## 1     1     1 &lt;NA&gt; 
+## 2     2    NA &lt;NA&gt;</code></pre>
+<p>This might be the best solution, because it’s not necessary to know anything about the other list elements in advance. All that is needed is an <code>NA</code> value in the same <em>data shape</em> as the other list elements.</p>
+<pre class="r code-source"><code>(data_iris_zero &lt;- tibble(x = 1:2, y = list(iris[1:2, ], iris[0,])))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;df[,5] [2 × 5]&gt;
+## 2     2 &lt;df[,5] [0 × 5]&gt;</code></pre>
+<pre class="r code-source"><code>data_iris_zero %&gt;% unnest()</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 6
+##       x Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+##   &lt;int&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;fct&gt;  
+## 1     1          5.1         3.5          1.4         0.2 setosa 
+## 2     1          4.9         3            1.4         0.2 setosa</code></pre>
+<pre class="r code-source"><code>(data_iris_na &lt;- tibble(x = 1:2, y = list(iris[1:2, ], data.frame(Sepal.Length = NA))))</code></pre>
+<pre class="code-output"><code>## # A tibble: 2 x 2
+##       x y               
+##   &lt;int&gt; &lt;list&gt;          
+## 1     1 &lt;df[,5] [2 × 5]&gt;
+## 2     2 &lt;df[,1] [1 × 1]&gt;</code></pre>
+<pre class="r code-source"><code>data_iris_na %&gt;% unnest()</code></pre>
+<pre class="code-output"><code>## # A tibble: 3 x 6
+##       x Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+##   &lt;int&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;fct&gt;  
+## 1     1          5.1         3.5          1.4         0.2 setosa 
+## 2     1          4.9         3            1.4         0.2 setosa 
+## 3     2         NA          NA           NA          NA   &lt;NA&gt;</code></pre>
+<p>Finally, another solution is to use the zero-length data frame element and
+<code>full_join()</code> the <code>unnest()</code>ed data with the original data, minus the list column.</p>
+<pre class="r code-source"><code>full_join(
+  data_iris_zero %&gt;% unnest(),
+  data_iris_zero %&gt;% select(-y)
+)</code></pre>
+<pre class="code-output"><code>## # A tibble: 3 x 6
+##       x Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+##   &lt;int&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;fct&gt;  
+## 1     1          5.1         3.5          1.4         0.2 setosa 
+## 2     1          4.9         3            1.4         0.2 setosa 
+## 3     2         NA          NA           NA          NA   &lt;NA&gt;</code></pre>
